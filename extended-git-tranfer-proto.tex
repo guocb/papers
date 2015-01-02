@@ -1,0 +1,63 @@
+\documentclass[preprint]{sigplanconf}
+
+\usepackage[pdftex]{graphicx}
+\usepackage[all]{xy}
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes, backgrounds, chains, decorations, calc, fit,
+    shadows}
+\usepackage[english]{babel}
+\usepackage[Q=yes]{examplep}
+\usepackage{pgf}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily
+}
+
+\begin{document}
+\title{Extended Git Transfer Protocol by Subdirectories of A Repository}
+\authorinfo{Congbin Guo\and Eric Wang}{SCM team, VMware Inc.}{\{cguo,wange\}@vmware.com}
+\maketitle
+\abstract{
+  % the problem
+  The lack of partial cloning/fetching/pushing by subdirectories consumes lots of time and network bandwidth when talks to a remote Git repository.
+  % why interesting
+  This downgrades the development efficiency against many large enterprise level repositories.
+  % solution
+  This paper extends the current Git transfer protocol to support bidirectional transferring by subdirectories of a repository specified by user.
+  % value
+  The presented extended protocol improves the development efficiency and keeps the Git experience as good as common Git work flows, finally help the Git adoption in enterprises.
+}
+
+\keywords
+Git transfer protocol, large repository
+
+\section{Introduction}
+%(
+% describe the problem
+
+% my contribution
+- extend teh git transferring protocol
+  - extend the transferring protocol to enable it show the directories of the repo
+  - describe the steps to select specific subdirectories
+  - describe how server side handle the directories and create proper pack files
+  - describe how client side create mock blob and tree objects 
+  - describe how client create proper commit object based on mocked objects.
+- show other technologies which can be combined to use 
+
+%)
+\section{The problem}
+%(
+
+%)
+
+\section{My idea}
+
+\section{The details}
+
+\section{Related work}
+
+\section{Conclusions and Future works}
+
+
+\end{document}
