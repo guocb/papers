@@ -8,6 +8,7 @@
 \usepackage[english]{babel}
 \usepackage[Q=yes]{examplep}
 \usepackage{pgf}
+\usepackage{tikzuml-v1.0b/tikz-uml}
 \usepackage{listings}
 
 \lstset{
@@ -15,29 +16,111 @@
 }
 
 \begin{document}
-\title{Extended Git Transfer Protocol by Subdirectories of A Repository}
+\title{An Efficient Solution to Work with Large Git Repository}
 \authorinfo{Congbin Guo\and Eric Wang}{SCM team, VMware Inc.}{\{cguo,wange\}@vmware.com}
 \maketitle
 \abstract{
   % the problem
-  The lack of partial cloning/fetching/pushing by subdirectories consumes lots of time and network bandwidth when talks to a remote Git repository.
+  The lack of partial transferring (e.g. cloning, fetching, or pushing) by subdirectories consumes lots of time and network bandwidth when a Git client talks to a remote repository.
   % why interesting
-  This downgrades the development efficiency against many large enterprise level repositories.
+  This downgrades the development efficiency against many large enterprise level Git repositories, which might have long history or many files.
   % solution
-  This paper extends the current Git transfer protocol to support bidirectional transferring by subdirectories of a repository specified by user.
+  To support bidirectional transferring by subdirectories specified by a client from a repository, we extends the current Git transfer protocol to allow the selected subdirectories information passed to server, and implement new server side to trim uninterested subdirectories from Git pack file.
+  by steps to communicate extra information between server and client side. Furthuremore, we define 
   % value
   The presented extended protocol improves the development efficiency and keeps the Git experience as good as common Git work flows, finally help the Git adoption in enterprises.
 }
 
 \keywords
-Git transfer protocol, large repository
+Git, transfer protocol, large repository, pack file, Git object model
 
 \section{Introduction}
 %(
 % describe the problem
+Git is popular but still has problems when work with large remote repositories.
+One of them is time and network bandwidth consumed during data transferring, which typically includes cloning, fetching and pushing.
+The reason is Git store the history of snapshots of whole workspace, which might has tremendous amount of files, especially binary files.
+The feature to only transfer subdirectories has been desired for long time.
+However, it isn't included in current and recent future release of Git.
 
 % my contribution
-- extend teh git transferring protocol
+In this paper, we present a complete solution to help Git user to work with large repositories:
+\begin{itemize}
+  \item We analyze the Git transfer protocol first, and extend it to allow subdirectories selection between server and client.
+  \item Based on extend protocol, we describe how to minimize the data size to transferred to client by excluding all uninterested objects.
+  \item In client side, we talk a way how to create new commits with partial workspace just like in a full cloned workspace.
+\end{itemize}
+
+%)
+\section{The problem}
+%(
+Current Git transfer protocol is simple, efficient and elegant.
+The basic steps to transfer data from server (i.e. cloning, fetching) is shown in Figure \ref{fig:git-proto-clone-seq}, i.e.:
+
+\begin{enumerate}
+  \item Client initiates the request by call \verb|git-upload-pack| on server.
+  \item Server advertises all current reference SHA1s ($H_S$) to the client.
+  \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have| ($H_h$), which indicates the start and end SHA1 of commit objects to be transferred.
+  \item Server calculates all commit objects (and all other Git objects associated) in range of $[H_w, H_h)$, then writes to a stream connected to the client.
+\end{enumerate}
+
+The basic steps to transfer data to server (i.e. pushing) is shown in Figure \ref{fig:git-proto-push-seq}, i.e.:
+\begin{enumerate}
+  \item Client initiates the request by call \verb|git-recive-pack| on server.
+  \item Serve advertises all current references SHA1s ($H_S$) to the client.
+  \item Client calculates all commit objects (and all other Git objects associated) according to SHA1 of local references ($H_C$) and advertised by server $H_S$, packs them and writes to a stream connected to the server.
+\end{enumerate}
+
+\begin{figure}
+  \centering
+  \input{figures/git-proto-clone-seq.tikz}
+  \caption{Transferring Git objects from server}
+  \label{fig:git-proto-clone-seq}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \input{figures/git-proto-push-seq.tikz}
+  \caption{Transferring Git objects to server}
+  \label{fig:git-proto-push-seq}
+\end{figure}
+
+The problems to support subdirectories transferring needs to resolve below problems:
+\begin{itemize}
+  \item How does server and client negotiate which subdirectories to transfer?
+  \item How does server packs Git objects that only included in interested subdirectories?
+  \item How does client keeps the data consistency when create new commits based on partial workspace?
+\end{itemize}
+%)
+
+\section{My idea}
+protocol extension must keep the compatibility with general Git protocol.
+
+
+\section{The details}
+
+\subsection{Extended Transfer Protocol}
+\begin{figure}
+  \centering
+  \input{figures/git-proto-ext-seq.tikz}
+  \caption{Extended Git transfer protocol}
+  \label{fig:git-proto-ext-seq}
+\end{figure}
+\subsection{Git Object Model}
+\subsection{Server side workflow}
+\subsection{Client side workflow}
+
+\section{Related work}
+
+\section{Conclusions and Future works}
+
+
+\begin{itemize}
+  \item  extend the git transferring protocol to allow subdirectories information communicating between server and client side
+  \item server side only pack selected subdirectories data and sent it to client side to save resources.
+  \item resolve several client side issues to work with this partial pack data files
+\end{itemize}
+
   - extend the transferring protocol to enable it show the directories of the repo
   - describe the steps to select specific subdirectories
   - describe how server side handle the directories and create proper pack files
@@ -45,19 +128,8 @@ Git transfer protocol, large repository
   - describe how client create proper commit object based on mocked objects.
 - show other technologies which can be combined to use 
 
-%)
-\section{The problem}
-%(
-
-%)
-
-\section{My idea}
-
-\section{The details}
-
-\section{Related work}
-
-\section{Conclusions and Future works}
-
+We describe the Git transfer protocol first, and then describe how to extended the protocol and the new work flow.
+In the tree trim, we present an idea of using empty Git objects as placeholder to make the whole tree object complete.
+We resolve an client side issue to create compatible new commit objects by rewriting the commit by a post-commit hook..
 
 \end{document}

@@ -1,0 +1,20 @@
+%!tikz editor 1.0
+%!tikz source begin
+\begin{tikzpicture}
+\begin{umlseqdiag}                                                             
+\umlobject[class=Client]{c}                                                    
+\umlobject[class=Server]{s}                                                    
+\begin{umlcall}[op={git-upload-pack}]{c}{s}
+  \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
+  \end{umlcall} 
+  \begin{umlcall}[op={``want'' $H_w$}, return={pack stream}]{c}{s}
+    \begin{umlcall}[op={``have'' $H_h$}]{c}{s}
+    \end{umlcall}
+    \begin{umlcall}[op={pack-objects($[H_w, H_h)$)}]{s}{s}
+    \end{umlcall}                 
+  \end{umlcall}  
+\end{umlcall}
+\end{umlseqdiag} 
+\end{tikzpicture}
+%!tikz source end
+
