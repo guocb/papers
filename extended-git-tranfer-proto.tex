@@ -54,19 +54,20 @@ In this paper, we present a complete solution to help Git user to work with larg
 %)
 \section{The problem}
 %(
-Current Git transfer protocol is simple, efficient and elegant.
-The basic steps to transfer data from server (i.e. cloning, fetching) is shown in Figure \ref{fig:git-proto-clone-seq}, i.e.:
+Current Git transfer protocol is simple and clear.
+The steps of cloning (or fetching), i.e. transfer data from server, is shown in Figure \ref{fig:git-proto-clone-seq}:
 
 \begin{enumerate}
-  \item Client initiates the request by call \verb|git-upload-pack| on server.
+  \item Client initiates the request by calling \verb|git-upload-pack| on server.
   \item Server advertises all current reference SHA1s ($H_S$) to the client.
   \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have| ($H_h$), which indicates the start and end SHA1 of commit objects to be transferred.
+    In case of cloning, the list of \verb|have| is skipped since the client has nothing yet.
   \item Server calculates all commit objects (and all other Git objects associated) in range of $[H_w, H_h)$, then writes to a stream connected to the client.
 \end{enumerate}
 
-The basic steps to transfer data to server (i.e. pushing) is shown in Figure \ref{fig:git-proto-push-seq}, i.e.:
+The steps of pushing, i.e. transfer data to server, is shown in Figure \ref{fig:git-proto-push-seq}:
 \begin{enumerate}
-  \item Client initiates the request by call \verb|git-recive-pack| on server.
+  \item Client initiates the request by calling \verb|git-recive-pack| on server.
   \item Serve advertises all current references SHA1s ($H_S$) to the client.
   \item Client calculates all commit objects (and all other Git objects associated) according to SHA1 of local references ($H_C$) and advertised by server $H_S$, packs them and writes to a stream connected to the server.
 \end{enumerate}
@@ -93,19 +94,32 @@ The problems to support subdirectories transferring needs to resolve below probl
 \end{itemize}
 %)
 
-\section{My idea}
-protocol extension must keep the compatibility with general Git protocol.
+\section{Solution}
+We add an extra step in the standard Git transfer protocol to allow subdirectories negotiation between client and server.
+The step is initiated by client, so it's transparent for common Git client, which make sure the server compatibility for all kinds of client.
 
 
 \section{The details}
 
-\subsection{Extended Transfer Protocol}
+\subsection{Subdirectories negotiation}
+Client can send all subdirectories interested and excluded when it has enough information.
+Otherwise, the negotiation is necessary.
+The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
 \begin{figure}
   \centering
   \input{figures/git-proto-ext-seq.tikz}
   \caption{Extended Git transfer protocol}
   \label{fig:git-proto-ext-seq}
 \end{figure}
+\subsubsection{Operations}
+\begin{itemize}
+  \item \verb|dir| get directory of a SHA1:path.
+    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
+  \item \verb|exclude| 
+  \item \verb|choose|
+\end{itemize}
+server response
+
 \subsection{Git Object Model}
 \subsection{Server side workflow}
 \subsection{Client side workflow}
