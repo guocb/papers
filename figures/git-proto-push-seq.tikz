@@ -5,9 +5,9 @@
 \umlobject[class=Client]{c}
 \umlobject[class=Server]{s}
 \begin{umlcall}[op={git-receive-pack}]{c}{s}
-\begin{umlcall}[op={reference advertisement}, type=return]{s}{c}
+\begin{umlcall}[op={$H_S$}, type=return]{s}{c}
 \end{umlcall}
-\begin{umlcall}[op={git-pack-objs}]{c}{c}
+\begin{umlcall}[op={pack-objs($[H_C, H_S)$)}]{c}{c}
 \end{umlcall}
 \begin{umlcall}[op={pack stream}]{c}{s}
 \end{umlcall}

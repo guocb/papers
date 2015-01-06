@@ -37,8 +37,7 @@ Git, transfer protocol, large repository, pack file, Git object model
 \section{Introduction}
 %(
 % describe the problem
-Git is popular but still has problems when work with large remote repositories.
-One of them is time and network bandwidth consumed during data transferring, which typically includes cloning, fetching and pushing.
+Git is popular but still has problems when work with large remote repositories, which may consume lots of time and network bandwidth in data transferring from, and to, the repository.
 The reason is Git store the history of snapshots of whole workspace, which might has tremendous amount of files, especially binary files.
 The feature to only transfer subdirectories has been desired for long time.
 However, it isn't included in current and recent future release of Git.
@@ -55,7 +54,7 @@ In this paper, we present a complete solution to help Git user to work with larg
 \section{The problem}
 %(
 Current Git transfer protocol is simple and clear.
-The steps of cloning (or fetching), i.e. transfer data from server, is shown in Figure \ref{fig:git-proto-clone-seq}:
+The steps of transferring data from server, i.e. cloning or fetching, is shown in Figure \ref{fig:git-proto-clone-seq}:
 
 \begin{enumerate}
   \item Client initiates the request by calling \verb|git-upload-pack| on server.
@@ -65,19 +64,19 @@ The steps of cloning (or fetching), i.e. transfer data from server, is shown in 
   \item Server calculates all commit objects (and all other Git objects associated) in range of $[H_w, H_h)$, then writes to a stream connected to the client.
 \end{enumerate}
 
-The steps of pushing, i.e. transfer data to server, is shown in Figure \ref{fig:git-proto-push-seq}:
-\begin{enumerate}
-  \item Client initiates the request by calling \verb|git-recive-pack| on server.
-  \item Serve advertises all current references SHA1s ($H_S$) to the client.
-  \item Client calculates all commit objects (and all other Git objects associated) according to SHA1 of local references ($H_C$) and advertised by server $H_S$, packs them and writes to a stream connected to the server.
-\end{enumerate}
-
 \begin{figure}
   \centering
   \input{figures/git-proto-clone-seq.tikz}
   \caption{Transferring Git objects from server}
   \label{fig:git-proto-clone-seq}
 \end{figure}
+The steps of transferring data to server, i.e. pushing, is shown in Figure \ref{fig:git-proto-push-seq}:
+\begin{enumerate}
+  \item Client initiates the request by calling \verb|git-recive-pack| on server.
+  \item Serve advertises all current references SHA1s ($H_S$) to the client.
+  \item Client calculates all objects (commits and all other associated objects) according to local reference SHA1s ($H_C$) and those advertised by server $H_S$, i.e. $[H_C, H_S)$, packs them and writes to a stream connected to the server.
+\end{enumerate}
+
 
 \begin{figure}
   \centering
@@ -86,18 +85,25 @@ The steps of pushing, i.e. transfer data to server, is shown in Figure \ref{fig:
   \label{fig:git-proto-push-seq}
 \end{figure}
 
-The problems to support subdirectories transferring needs to resolve below problems:
+To support subdirectories transferring needs to resolve below problems:
 \begin{itemize}
   \item How does server and client negotiate which subdirectories to transfer?
-  \item How does server packs Git objects that only included in interested subdirectories?
-  \item How does client keeps the data consistency when create new commits based on partial workspace?
+  \item How does server pack Git objects that only included in the chosen subdirectories?
+  \item How does client ensure the consistency of newly created commits based on partial workspace?
 \end{itemize}
 %)
 
 \section{Solution}
-We add an extra step in the standard Git transfer protocol to allow subdirectories negotiation between client and server.
-The step is initiated by client, so it's transparent for common Git client, which make sure the server compatibility for all kinds of client.
+We add an optional extra step in the standard transfer protocol to allow subdirectories negotiation between client and server.
+The step is initiated by client, so it's transparent for common Git client, which can ensure the server compatibility for all kinds of client.
 
+The extension includes three primitive commands.
+\begin{itemize}
+  \item \verb|dir| get directory of a SHA1:path.
+    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
+  \item \verb|include| 
+  \item \verb|exclude|
+\end{itemize}
 
 \section{The details}
 
@@ -112,12 +118,6 @@ The subdirectories negotiation is an interactive process because the client may 
   \label{fig:git-proto-ext-seq}
 \end{figure}
 \subsubsection{Operations}
-\begin{itemize}
-  \item \verb|dir| get directory of a SHA1:path.
-    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
-  \item \verb|exclude| 
-  \item \verb|choose|
-\end{itemize}
 server response
 
 \subsection{Git Object Model}

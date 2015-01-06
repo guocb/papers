@@ -4,22 +4,20 @@
 \begin{umlseqdiag}                                                             
 \umlobject[class=Client]{c}                                                    
 \umlobject[class=Server]{s}                                                    
-\begin{umlfragment}[label={clone/fetch}]
-  \begin{umlcall}[op={git-upload-pack}]{c}{s}
-    \begin{umlcall}[op={references advertisement}, type=return]{s}{c}
+\begin{umlcall}[op={git-upload-pack}]{c}{s}
+    \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
     \end{umlcall} 
-    \begin{umlcall}[op={subdirectories advertisement}, type=return, draw=blue]{s}{c}
+    \begin{umlfragment}[type=loop]
+        \begin{umlcall}[op={dir}]{c}{s}
+        \end{umlcall}
+        \begin{umlcall}[op={$D_S$}, type=return]{s}{c}
+        \end{umlcall}
+    \end{umlfragment}
+    \begin{umlcall}[op={$<H_h, H_w, D_i, D_e>$}]{c}{s}
     \end{umlcall}
-    \begin{umlcall}[op={\emph{want} list}, return={pack stream}]{c}{s}
-      \begin{umlcall}[op={\emph{have} list}]{c}{s}
-      \end{umlcall}
-      \begin{umlcall}[op={subdirectories list}, draw=blue]{c}{s}
-      \end{umlcall}
-      \begin{umlcall}[op={git-pack-objects}]{s}{s}
-      \end{umlcall}                 
-    \end{umlcall}  
-  \end{umlcall}
-\end{umlfragment}
+    \begin{umlcall}[op={git-pack-objects}]{s}{s}
+    \end{umlcall}                 
+\end{umlcall}  
 \end{umlseqdiag}
 \end{tikzpicture}
 %!tikz source end
