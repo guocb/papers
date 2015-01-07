@@ -45,8 +45,8 @@ However, it isn't included in current and recent future release of Git.
 % my contribution
 In this paper, we present a complete solution to help Git user to work with large repositories:
 \begin{itemize}
-  \item We analyze the Git transfer protocol first, and extend it to allow subdirectories selection between server and client.
-  \item Based on extend protocol, we describe how to minimize the data size to transferred to client by excluding all uninterested objects.
+  \item We analyze the Git transfer protocol first, and extend it to allow subdirectories negotiation between server and client.
+  \item Based on the extended protocol, we describe how to minimize the transferred data size to client by excluding some Git objects.
   \item In client side, we talk a way how to create new commits with partial workspace just like in a full cloned workspace.
 \end{itemize}
 
@@ -94,7 +94,7 @@ To support subdirectories transferring needs to resolve below problems:
 %)
 
 \section{Solution}
-\subsection{Subdirectories negotiation}
+\subsection{Negotiate subdirectories}
 Client can send all subdirectories interested and excluded when it has enough information.
 Otherwise, the negotiation is necessary.
 The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
@@ -123,17 +123,12 @@ The extension includes three primitive commands.
 The BNF of those three commands.
 ...
 
-\subsection{Objects packing}
+\subsection{Pack and transfer objects to client}
 \subsubsection{Git Object Model}
-Git stores files, directories, and change histories as unique objects with names derived from their SHA1 check sum value\cite{gitobj}.
-There are four types of objects in Git object model, i.e. \emph{commit}, \emph{tree}, \emph{blob}, and \emph{tag}.
-The Git object model can best be explained by example.
+Git stores files, directories, and change histories as unique objects, i.e. \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1 check sum value\cite{gitobj}.
+It can be better explained by an example.
 Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
-The changes made include:
-\begin{itemize}
-  \item modifies \verb|file1| and \verb|file2|
-  \item adds a new file \verb|file4| in directory \verb|dir1/|
-\end{itemize}
+\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was added.
 \begin{figure}
   \centering
   \input figures/workspace.tikz
@@ -141,8 +136,8 @@ The changes made include:
   \label{fig:workspace}
 \end{figure}
 
-The repository now stores two versions of the workspace.
-Figure \ref{fig:git-repo} shows them as commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, \verb|HEAD|.
+Figure \ref{fig:git-repo} shows the repository.
+Accordingly, there are two commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, i.e. \verb|HEAD|.
 Because \verb|file3| is unchanged, the two commits share blob $B_3$.
 
 \begin{figure}[htpb]
@@ -152,22 +147,92 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
   \label{fig:git-repo}
 \end{figure}
 
-\subsubsection{packing}
-In standard Git protocol, the object packing can be regards as a piped command, i.e. \verb|git-object-list|git-pack-objects|.
+\subsubsection{Exclude objects from packing}
+In standard Git protocol, the object packing can be regards as a piped command, i.e.
+\begin{verbatim}
+git-object-list|git-pack-objects
+\end{verbatim}
 That is, get a list of all commits (and its associated objects) first, then pack them.
 
-In our solution, we remove all tree object and blob object which not in the subdirectories client specified, and then pass the reduced list to pack command.
+We try to transfer fewer objects to save time and system resources.
+But which objects can be removed from the packing list?
+We must keep commit and tag objects for repository consistency.
+So only tree and blob objects can be excluded, if they are not in the subdirectories client want.
 
-The whole process can be regarded as a command as \verb|git-object-list\|filter($D_i$, $D_e$)\|git-pack-objects|.
+In the sample repository shown in Figure \ref{fig:git-repo}, suppose the client only want \verb|file1| (represented as $B_1$ and $B'_1$).
+The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blob objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure \ref{fig:find-obj-to-remove}.
+\begin{figure}[htpb]
+  \centering
+  \input{figures/git-model-filtering.tikz}
+  \caption{Objects can be excluded in the sample repository}
+  \label{fig:find-obj-to-remove}
+\end{figure}
 
-\subsubsection{Mock Objects}
-the pack file transferred to the client can not be handled by Git directly because many objects are removed.
-The Git object chain is broken, and we must add some \emph{mock} Git objects to complete it.
+After that, we have a reduced object list, and pass that to \verb|git-pack-objects| command to pack.
+The whole process can be regarded as a command as:
+\begin{verbatim}
+git-object-list|filter($D_i$, $D_e$)|git-pack-objects
+\end{verbatim}
 
-\subsection{Client side commits rewriting}
-The \emph{index} is one key data structure for Git, which loads current workspace as a staging area, and prepares for new commit to be created.
-In our case, only some subdirectories of the repository is cloned, so the index is partial, which result in new commits created is partial as well.
-Therefore, we must rewrite them to complete all missing subdirectories information before those pushed to server.
+\subsection{Receive objects pack}
+The pack stream transferred to the client can not be handled by Git directly due to the excluded objects.
+We create placeholder files in client for the excluded ones, which we call \emph{Git mock objects}.
+The mock objects have same name, i.e. the SHA1 string of the object, as the original objects.
+But the content of mock objects is empty.
+
+The reason why we can use empty file as the placeholder is because that Git performs consistency checks based on SHA1 values get from the object file name, rather than re-calculate it again from the content. In other words, Git only cares about the object file name instead of the content.
+
+Figure \ref{fig:cmd-create-mock} shows one way to create empty blob and tree object by command line.
+The object file prefixed with \verb|e69de29| and \verb|4b825dc| are the mock blob and tree object we want.
+They can play the placeholder to any same type Git object by just renaming it to target SHA1.
+The benefits of using those mock objects are:
+\begin{enumerate}
+  \item They are still Git objects with correct format, though named with SHA1 string of another object.
+  \item Their size is small and easy to be created.
+  \item An empty tree object can dereference all associated objects, eliminating the need for placeholders for sub-trees and blobs.
+\end{enumerate}
+
+
+\begin{figure}[htpb]
+  \centering
+  \begin{verbatim}
+    # create an empty blob object
+    $ :> empty_file
+    $ git hash-object -w empty_file
+    e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+
+    # create an empty tree object
+    $ git mktree <<EOF
+    EOF
+    4b825dc642cb6eb9a060e54bf8d69288fbee4904
+  \end{verbatim}
+  \caption{Command line to create Git mock objects}
+  \label{fig:cmd-create-mock}
+\end{figure}
+
+Figure \ref{fig:mock-objects} shows the resulting diagram with the mock objects.
+
+\begin{itemize}
+  \item The mock object $B_m$ replaces the blob object $B_4$.
+  \item The mock tree object $T_m$ and $T'_m$ replace two tree objects, $T_2$ and $T'_2$.
+\end{itemize}
+
+\begin{figure}[htpb]
+  \centering
+  \input{figures/git-model-final.tikz}
+  \caption{Replacing Git objects with mock objects}
+  \label{fig:mock-objects}
+\end{figure}
+
+With those mock objects, Git does not complain anything about the data from the server.
+
+\subsection{Create new commits and push back to server}
+Git staging area, or \emph{index}, which generally kept in \verb|.git/index|, is the key data structure for Git to prepare a new commit.
+It contains a sorted list of all path names of current tree, each with permissions and the SHA1 of a blob object \cite{idx-format}.
+Git uses the data stored in index to create a tree object, then creates a commit with that tree.
+
+In our case, the index is partial because only part of subdirectories the client has, which result in the partial tree of new commits created as well.
+We must rewrite the partial tree with all missing subdirectories information before those pushed to server.
 
 The rewriting can be done either at client side or server side.
 The simplest way may be done by a \verb|post-commit| hook, which called every time a commit created.

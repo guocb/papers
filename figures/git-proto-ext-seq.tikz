@@ -5,17 +5,17 @@
 \umlobject[class=Client]{c}                                                    
 \umlobject[class=Server]{s}                                                    
 \begin{umlcall}[op={git-upload-pack}, return={pack stream}]{c}{s}
-    \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
+    \begin{umlcall}[op={$H_s$}, type=return]{s}{c}
     \end{umlcall} 
     \begin{umlfragment}[type=loop]
         \begin{umlcall}[op={dir}]{c}{s}
         \end{umlcall}
-        \begin{umlcall}[op={$D_S$}, type=return]{s}{c}
+        \begin{umlcall}[op={$D_s$}, type=return]{s}{c}
         \end{umlcall}
     \end{umlfragment}
     \begin{umlcall}[op={$<H_h, H_w, D_i, D_e>$}]{c}{s}
     \end{umlcall}
-    \begin{umlcall}[op={pack_objs($[H_s, H_c), D_i, D_e$)}]{s}{s}
+    \begin{umlcall}[op={pack-objs}]{s}{s}
     \end{umlcall}                 
 \end{umlcall}  
 \end{umlseqdiag}
