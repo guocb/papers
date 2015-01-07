@@ -1,0 +1,37 @@
+\tikzstyle{commit}=[rectangle, draw, rounded corners]
+\tikzstyle{tree}=[regular polygon, regular polygon sides=5, draw, thin]
+\tikzstyle{blob}=[circle, draw, thin]
+\tikzstyle{parent}=[-angle 60, draw, thick]
+\tikzstyle{edge from parent}=[->, draw]
+\tikzstyle{2obj}=[->, draw]
+% tree 1
+\node[commit](ci1){$C$}
+child{node[tree](tr1){$T_1$}
+  child{node[blob](b1_1){$B_1$}}
+  child{node[tree](tr1_1){$T_2$}
+    child{node[blob](b1_2){$B_2$}}
+    child{node[blob](b1_3){$B_3$}}
+  }
+};
+
+% tree 2
+\node[commit, right of=ci1, node distance=4cm](ci2){$C'$}
+child{node[tree, below of=ci2](tr2){$T'_1$}
+  child{node[blob](b2_1){$B'_1$}}
+  child{node[blob](b2_4){$B_4$}}
+  child{node[tree](tr2_1){$T'_2$}
+    child{node[blob, below left of=tr2_1](b2_2){$B'_2$}}
+  }
+};
+
+\draw[parent](ci2) to (ci1);
+
+% share object between T1 and T2
+\draw[2obj](tr2_1) to [in=-45, out=-45](b1_3);
+
+
+% HEAD
+\node[rectangle, right of=ci2](head){$H$};
+\draw[parent](head) to (ci2);
+
+

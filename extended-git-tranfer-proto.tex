@@ -124,16 +124,57 @@ The BNF of those three commands.
 ...
 
 \subsection{Objects packing}
-In standard Git protocol, the object packing can be thought as a piped command, i.e. \verb|git-object-list\|git-pack-objects|.
-That is, get a list of all commits (and its associated objects) and then pack them.
+\subsubsection{Git Object Model}
+Git stores files, directories, and change histories as unique objects with names derived from their SHA1 check sum value\cite{gitobj}.
+There are four types of objects in Git object model, i.e. \emph{commit}, \emph{tree}, \emph{blob}, and \emph{tag}.
+The Git object model can best be explained by example.
+Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
+The changes made include:
+\begin{itemize}
+  \item modifies \verb|file1| and \verb|file2|
+  \item adds a new file \verb|file4| in directory \verb|dir1/|
+\end{itemize}
+\begin{figure}
+  \centering
+  \input figures/workspace.tikz
+  \caption{Snapshots of the sample workspace}
+  \label{fig:workspace}
+\end{figure}
 
-Since we have the subdirectories information, we can filter out objects not in those subdirectories.
-The whole process can be thought as a command as \verb|git-object-list\|filter($D_i$, $D_e$)\|git-pack-objects|.
-\subsection{Client side workflow}
+The repository now stores two versions of the workspace.
+Figure \ref{fig:git-repo} shows them as commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, \verb|HEAD|.
+Because \verb|file3| is unchanged, the two commits share blob $B_3$.
+
+\begin{figure}[htpb]
+  \centering
+  \input{figures/git-model.tikz}
+  \caption{Git repository for a sample workspace}
+  \label{fig:git-repo}
+\end{figure}
+
+\subsubsection{packing}
+In standard Git protocol, the object packing can be regards as a piped command, i.e. \verb|git-object-list|git-pack-objects|.
+That is, get a list of all commits (and its associated objects) first, then pack them.
+
+In our solution, we remove all tree object and blob object which not in the subdirectories client specified, and then pass the reduced list to pack command.
+
+The whole process can be regarded as a command as \verb|git-object-list\|filter($D_i$, $D_e$)\|git-pack-objects|.
+
+\subsubsection{Mock Objects}
 the pack file transferred to the client can not be handled by Git directly because many objects are removed.
 The Git object chain is broken, and we must add some \emph{mock} Git objects to complete it.
 
-\subsubsection{Git Object Model}
+\subsection{Client side commits rewriting}
+The \emph{index} is one key data structure for Git, which loads current workspace as a staging area, and prepares for new commit to be created.
+In our case, only some subdirectories of the repository is cloned, so the index is partial, which result in new commits created is partial as well.
+Therefore, we must rewrite them to complete all missing subdirectories information before those pushed to server.
+
+The rewriting can be done either at client side or server side.
+The simplest way may be done by a \verb|post-commit| hook, which called every time a commit created.
+In this hook, we complete the missing subdirectories information to the tree object associated with the commit, and create a new commit to replace current one.
+
+
+
 
 \section{The details}
 
@@ -159,5 +200,46 @@ The Git object chain is broken, and we must add some \emph{mock} Git objects to 
 We describe the Git transfer protocol first, and then describe how to extended the protocol and the new work flow.
 In the tree trim, we present an idea of using empty Git objects as placeholder to make the whole tree object complete.
 We resolve an client side issue to create compatible new commit objects by rewriting the commit by a post-commit hook..
+
+\begin{thebibliography}{10}
+    \softraggedright
+
+    \bibitem{sparseco} \emph{Git-read-tree(1) Manual Page} (February
+      2013). \newblock URL
+      [https://www.kernel.org/pub/software/scm/git/docs/git-read-tree.html]
+    \bibitem{roadmap} J. Hamano (July 2008). \newblock \emph{sparse fetch}.
+    \newblock Git mailing list. \newblock URL
+      [http://thread.gmane.org/gmane.comp.version-control.git/89681/focus=90016]
+    \bibitem{gitobj} S. Chacon (July 2009).\newblock\emph{Pro Git}, section 9.2.
+      \newblock URL
+      [http://git-scm.com/book/en/Git-Internals-Git-Objects]
+      \bibitem{idx-format} \emph{GIT index format}.\newblock URL
+      https://www.kernel.org/pub/software/scm/git/docs/technical/index-format.txt
+    \bibitem{packformat} \emph{GIT pack format}.\newblock URL
+      [https://www.kernel.org/pub/software/scm/git/docs/technical/pack-format.txt]
+    \bibitem{replace} \emph{git-replace(1) Manual Page} (February 2013).\newblock
+      URL [https://www.kernel.org/pub/software/scm/git/docs/git-replace.html]
+    \bibitem{tran-protocol} \emph{Pack files transfer protocol}.\newblock URL
+      [https://www.kernel.org/pub/software/scm/git/docs/v1.7.0.5/technical/\\
+      pack-protocol.txt]
+    \bibitem{duy08}N. Duy (July 2008).\newblock \emph{git-clone: support --path
+      to do sparse clone}. \newblock Git mailing list. \newblock URL
+      [http://article.gmane.org/gmane.comp.version-control.git/89681]
+    \bibitem{newren10-0}E. Newren (July 2010). \newblock \emph{Sparse clones}.
+      \newblock Git mailing list. \newblock URL
+      http://article.gmane.org/gmane.comp.version-control.git/152020
+    \bibitem{newren10-1}E. Newren (September 2010). \newblock \emph{Sparse
+      clones}.  \newblock Git mailing list. \newblock URL
+      http://article.gmane.org/gmane.comp.version-control.git/155389
+    \bibitem{duy10-1}N. Duy (July 2010). \newblock \emph{Subtree clone?}. \newblock
+      Git mailing list. \newblock URL
+      [http://article.gmane.org/gmane.comp.version-control.git/151937]
+    \bibitem{duy10-2}N. Duy (July 2010). \newblock \emph{Subtree clone proof of
+    concept}. \newblock Git mailing list. \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/152347].
+    \bibitem{duy10-3}N. Duy (August 2010). \newblock \emph{subtree clone v2}.
+    \newblock Git mailing list. \newblock
+    URL [http://article.gmane.org/gmane.comp.version-control.git/154343].
+\end{thebibliography}
 
 \end{document}

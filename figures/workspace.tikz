@@ -1,0 +1,29 @@
+\begin{tikzpicture}[every node/.style={anchor=north west}, every path/.style={->}]
+% snapshot 1
+\node (w) {\verb|workspace/|};
+\node (f1) at (w.south){\verb|file1|};
+\node (d1) at (f1.south west){\verb|dir1/|};
+\node (f2) at (d1.south) {\verb|file2|};
+\node (f3) at (f2.south west) {\verb|file3|};
+
+\draw (w.-160) |- (f1.west);
+\draw (w.-160) |- (d1.west);
+\draw (d1.-145) |- (f2.west);
+\draw (d1.-145) |- (f3.west);
+
+% snapshot 2
+\node (w2) at (3,0) {\verb|workspace/|};
+\node (f12) at (w2.south){\verb|file1'|};
+\node (d12) at (f12.south west){\verb|dir1/|};
+\node (f22) at (d12.south) {\verb|file2'|};
+\node (f32) at (f22.south west) {\verb|file3|};
+\node (f4) at (f32.south west) {\verb|file4|};
+
+\draw (w2.-160) |- (f12.west);
+\draw (w2.-160) |- (d12.west);
+\draw (d12.-145) |- (f22.west);
+\draw (d12.-145) |- (f32.west);
+\draw (d12.-145) |- (f4.west);
+
+\end{tikzpicture}
+
