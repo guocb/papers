@@ -14,16 +14,16 @@
 % snapshot 2
 \node (w2) at (3,0) {\verb|workspace/|};
 \node (f12) at (w2.south){\verb|file1'|};
-\node (d12) at (f12.south west){\verb|dir1/|};
+\node (f4) at (f12.south west) {\verb|file4|};
+\node (d12) at (f4.south west){\verb|dir1/|};
 \node (f22) at (d12.south) {\verb|file2'|};
 \node (f32) at (f22.south west) {\verb|file3|};
-\node (f4) at (f32.south west) {\verb|file4|};
 
 \draw (w2.-160) |- (f12.west);
+\draw (w2.-160) |- (f4.west);
 \draw (w2.-160) |- (d12.west);
 \draw (d12.-145) |- (f22.west);
 \draw (d12.-145) |- (f32.west);
-\draw (d12.-145) |- (f4.west);
 
 \end{tikzpicture}
 
