@@ -94,23 +94,13 @@ To support subdirectories transferring needs to resolve below problems:
 %)
 
 \section{Solution}
-We add an optional extra step in the standard transfer protocol to allow subdirectories negotiation between client and server.
-The step is initiated by client, so it's transparent for common Git client, which can ensure the server compatibility for all kinds of client.
-
-The extension includes three primitive commands.
-\begin{itemize}
-  \item \verb|dir| get directory of a SHA1:path.
-    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
-  \item \verb|include| 
-  \item \verb|exclude|
-\end{itemize}
-
-\section{The details}
-
 \subsection{Subdirectories negotiation}
 Client can send all subdirectories interested and excluded when it has enough information.
 Otherwise, the negotiation is necessary.
 The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
+
+We add an extra step in the standard transfer protocol to allow subdirectories negotiation between client and server.
+The step is initiated by client, so it's transparent for common Git client, which can ensure the server compatibility for all kinds of client.
 \begin{figure}
   \centering
   \input{figures/git-proto-ext-seq.tikz}
@@ -120,9 +110,33 @@ The subdirectories negotiation is an interactive process because the client may 
 \subsubsection{Operations}
 server response
 
-\subsection{Git Object Model}
-\subsection{Server side workflow}
+
+The extension includes three primitive commands.
+\begin{itemize}
+  \item \verb|dir| get directory of a SHA1:path.
+    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
+    Server returns a list of files or directories under the path specified.
+  \item \verb|include| used to specify which subdirectories will be included in result.
+  \item \verb|exclude| used to specify which subdirectories should be excluded from result.
+\end{itemize}
+
+The BNF of those three commands.
+...
+
+\subsection{Objects packing}
+In standard Git protocol, the object packing can be thought as a piped command, i.e. \verb|git-object-list\|git-pack-objects|.
+That is, get a list of all commits (and its associated objects) and then pack them.
+
+Since we have the subdirectories information, we can filter out objects not in those subdirectories.
+The whole process can be thought as a command as \verb|git-object-list\|filter($D_i$, $D_e$)\|git-pack-objects|.
 \subsection{Client side workflow}
+the pack file transferred to the client can not be handled by Git directly because many objects are removed.
+The Git object chain is broken, and we must add some \emph{mock} Git objects to complete it.
+
+\subsubsection{Git Object Model}
+
+\section{The details}
+
 
 \section{Related work}
 

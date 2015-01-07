@@ -4,7 +4,7 @@
 \begin{umlseqdiag}                                                             
 \umlobject[class=Client]{c}                                                    
 \umlobject[class=Server]{s}                                                    
-\begin{umlcall}[op={git-upload-pack}]{c}{s}
+\begin{umlcall}[op={git-upload-pack}, return={pack stream}]{c}{s}
     \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
     \end{umlcall} 
     \begin{umlfragment}[type=loop]
@@ -15,7 +15,7 @@
     \end{umlfragment}
     \begin{umlcall}[op={$<H_h, H_w, D_i, D_e>$}]{c}{s}
     \end{umlcall}
-    \begin{umlcall}[op={git-pack-objects}]{s}{s}
+    \begin{umlcall}[op={pack_objs($[H_s, H_c), D_i, D_e$)}]{s}{s}
     \end{umlcall}                 
 \end{umlcall}  
 \end{umlseqdiag}
