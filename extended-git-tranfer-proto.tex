@@ -51,7 +51,30 @@ In this paper, we present a complete solution to help Git user to work with larg
 \end{itemize}
 
 %)
-\section{The problem}
+\section{Background}
+\subsection{Git object model}
+Git stores files, directories, and change histories as unique objects, i.e. \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1 check sum value\cite{gitobj}.
+It can be better explained by an example.
+Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
+\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was added.
+\begin{figure}
+  \centering
+  \input figures/workspace.tikz
+  \caption{Snapshots of the sample workspace}
+  \label{fig:workspace}
+\end{figure}
+
+Figure \ref{fig:git-repo} shows the repository.
+Accordingly, there are two commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, i.e. \verb|HEAD|.
+Because \verb|file3| is unchanged, the two commits share blob $B_3$.
+
+\begin{figure}[htpb]
+  \centering
+  \input{figures/git-model.tikz}
+  \caption{Git repository for a sample workspace}
+  \label{fig:git-repo}
+\end{figure}
+\subsection{Git transfer protocol}
 %(
 Current Git transfer protocol is simple and clear.
 The steps of transferring data from server, i.e. cloning or fetching, is shown in Figure \ref{fig:git-proto-clone-seq}:
@@ -85,7 +108,8 @@ The steps of transferring data to server, i.e. pushing, is shown in Figure \ref{
   \label{fig:git-proto-push-seq}
 \end{figure}
 
-To support subdirectories transferring needs to resolve below problems:
+\section{The problem}
+To support subdirectories transferring between server and client needs to resolve below problems:
 \begin{itemize}
   \item How does server and client negotiate which subdirectories to transfer?
   \item How does server pack Git objects that only included in the chosen subdirectories?
@@ -94,7 +118,10 @@ To support subdirectories transferring needs to resolve below problems:
 %)
 
 \section{Solution}
-\subsection{Negotiate subdirectories}
+Our solution includes both server side and client side changes.
+\subsection{Server side}
+We add two more steps in server side, one is negotiating subdirectories, another is excluding uninterested objects from packing.
+\subsubsection{Negotiate subdirectories}
 Client can send all subdirectories interested and excluded when it has enough information.
 Otherwise, the negotiation is necessary.
 The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
@@ -107,8 +134,8 @@ The step is initiated by client, so it's transparent for common Git client, whic
   \caption{Extended Git transfer protocol}
   \label{fig:git-proto-ext-seq}
 \end{figure}
-\subsubsection{Operations}
-server response
+
+Operations and server response
 
 
 The extension includes three primitive commands.
@@ -122,30 +149,6 @@ The extension includes three primitive commands.
 
 The BNF of those three commands.
 ...
-
-\subsection{Pack and transfer objects to client}
-\subsubsection{Git Object Model}
-Git stores files, directories, and change histories as unique objects, i.e. \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1 check sum value\cite{gitobj}.
-It can be better explained by an example.
-Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
-\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was added.
-\begin{figure}
-  \centering
-  \input figures/workspace.tikz
-  \caption{Snapshots of the sample workspace}
-  \label{fig:workspace}
-\end{figure}
-
-Figure \ref{fig:git-repo} shows the repository.
-Accordingly, there are two commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, i.e. \verb|HEAD|.
-Because \verb|file3| is unchanged, the two commits share blob $B_3$.
-
-\begin{figure}[htpb]
-  \centering
-  \input{figures/git-model.tikz}
-  \caption{Git repository for a sample workspace}
-  \label{fig:git-repo}
-\end{figure}
 
 \subsubsection{Exclude objects from packing}
 In standard Git protocol, the object packing can be regards as a piped command, i.e.
@@ -174,7 +177,8 @@ The whole process can be regarded as a command as:
 git-object-list|filter($D_i$, $D_e$)|git-pack-objects
 \end{verbatim}
 
-\subsection{Receive objects pack}
+\subsection{Client side}
+\subsubsection{Receive objects pack}
 The pack stream transferred to the client can not be handled by Git directly due to the excluded objects.
 We create placeholder files in client for the excluded ones, which we call \emph{Git mock objects}.
 The mock objects have same name, i.e. the SHA1 string of the object, as the original objects.
@@ -226,17 +230,57 @@ Figure \ref{fig:mock-objects} shows the resulting diagram with the mock objects.
 
 With those mock objects, Git does not complain anything about the data from the server.
 
-\subsection{Create new commits and push back to server}
-Git staging area, or \emph{index}, which generally kept in \verb|.git/index|, is the key data structure for Git to prepare a new commit.
-It contains a sorted list of all path names of current tree, each with permissions and the SHA1 of a blob object \cite{idx-format}.
-Git uses the data stored in index to create a tree object, then creates a commit with that tree.
+\subsubsection{Check out workspace}
+Like normal Git objects, the mock objects can also be checked out to workspace.
+The checked-out mock blob objects is a empty file.
+And the checked-out mock tree object is nothing.
 
-In our case, the index is partial because only part of subdirectories the client has, which result in the partial tree of new commits created as well.
-We must rewrite the partial tree with all missing subdirectories information before those pushed to server.
+The checking out of those mock objects can make Git think the current workspace is dirty.
+That is because Git recalculates the SHA1 value of working files and compare what recorded in Git index.
+Obviously, they are different.
 
-The rewriting can be done either at client side or server side.
-The simplest way may be done by a \verb|post-commit| hook, which called every time a commit created.
-In this hook, we complete the missing subdirectories information to the tree object associated with the commit, and create a new commit to replace current one.
+We use \emph{Git sparse checkout} \cite{sparseco} to avoid that, which only
+checkout specified subdirectories from repository into workspace.
+Here we can reuse the result of subdirectories negotiation done before.
+That is what user really want to get initially.
+
+
+
+\subsubsection{Create new commits and push back to server}
+Git staging area, or \emph{index}, which generally kept in \verb|.git/index|,
+is the key data structure for Git to prepare a new commit.
+It contains a sorted list of all path names of current tree, each with
+permissions and the SHA1 of a blob object \cite{idx-format}.
+Git uses the data stored in index to create a tree object, then creates a
+commit with that tree.
+Even for Git sparse checking out, in which only a part of files be checked
+out, the index still contains a full list of all files for committing.
+
+In our case, nothing can be loaded to Git index by reading mock tree objects
+since they are empty.
+This results in partial Git index which cannot work properly when creating new
+commits, which all directories represented by mock tree objects regarded as
+removed.
+
+Because it makes no sense for users to modify files out of the scope of
+subdirectories negotiated in our solution, we extract missing blob and tree
+objects information from the most recent commit, and combine it with data
+stored in the Git index to form a complete tree object, then rewrite the commit
+to point to the complete tree object.
+We do the rewriting just after every new commit created.
+Below is the more detail steps:
+
+\begin{enumerate}
+  \item Get the tree object content of current version $T_h$, i.e. \\
+        \verb|git cat-file -p HEAD^{tree}|.
+  \item Get staging files path and SHA1 information $T_t$ from Git index.
+  \item Combine the content of $T_h$ and $T_t$ together, then construct a new
+        tree object $T$ by command \verb|git mktree|.
+  \item Run command \verb|git commit-tree |$T$ to create a new commit object
+        $C$.
+  \item Update current branch tip to pointed to $C$ by command \\
+        \verb|git update-ref|.
+\end{enumerate}
 
 
 
@@ -245,26 +289,36 @@ In this hook, we complete the missing subdirectories information to the tree obj
 
 
 \section{Related work}
+E. Newren did some inspiring work in \cite{newren10-0}, \cite{newren10-1},
+which describes the idea of just clone referenced objects to client side.
+Additionally, this work also uses \emph{git replace} mechanism to deal with
+commit history.
+However, due to modification to cloned commits and index file, some common Git
+important operations cannot work perfectly, such as fetch, push, rebase, etc.
 
-\section{Conclusions and Future works}
+N. Duy has also begun to work on sparse clone or subtree clone since 2008; and
+who submitted a series of patch in Git community.
+\cite{duy08}, \cite{duy10-1}, \cite{duy10-2}, and \cite{duy10-3} describes a
+sparse clone method by adding an extra option to \verb|git clone| command, and
+rewriting/replacing the commits in clone time.
+The work also has pointed out the performance limitation of Git replacement
+mechanism.
+The weak part of the work is multiple directories cannot be fully supported.
+
+\section{Limitations}
+Because of changing in Git object store, the implementation cannot support
+any Git operations care about repository, e.g. the command of \verb|fsck|,
+\verb|repack|, and \verb|gc|.
+Additionally, since the mock tree object is empty, running the command of
+\verb|ls-tree| or \verb|cat-file| on that tree object produces empty output.
+
+Another limitation is, since the Git index is partial comparing with normal Git
+clone, commands related to Git index may give different results, e.g.
+\verb|git ls-files|.
 
 
-\begin{itemize}
-  \item  extend the git transferring protocol to allow subdirectories information communicating between server and client side
-  \item server side only pack selected subdirectories data and sent it to client side to save resources.
-  \item resolve several client side issues to work with this partial pack data files
-\end{itemize}
 
-  - extend the transferring protocol to enable it show the directories of the repo
-  - describe the steps to select specific subdirectories
-  - describe how server side handle the directories and create proper pack files
-  - describe how client side create mock blob and tree objects 
-  - describe how client create proper commit object based on mocked objects.
-- show other technologies which can be combined to use 
 
-We describe the Git transfer protocol first, and then describe how to extended the protocol and the new work flow.
-In the tree trim, we present an idea of using empty Git objects as placeholder to make the whole tree object complete.
-We resolve an client side issue to create compatible new commit objects by rewriting the commit by a post-commit hook..
 
 \begin{thebibliography}{10}
     \softraggedright
@@ -308,3 +362,4 @@ We resolve an client side issue to create compatible new commit objects by rewri
 \end{thebibliography}
 
 \end{document}
+
