@@ -17,6 +17,8 @@
     \end{umlcall}
     \begin{umlcall}[op={pack-objs}]{s}{s}
     \end{umlcall}                 
+    \begin{umlcall}[op={mock object list}, type=return]{s}{c}
+    \end{umlcall}
 \end{umlcall}  
 \end{umlseqdiag}
 \end{tikzpicture}

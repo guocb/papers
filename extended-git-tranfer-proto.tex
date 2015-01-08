@@ -17,7 +17,7 @@
 
 \begin{document}
 \title{An Efficient Solution to Work with Large Git Repository}
-\authorinfo{Congbin Guo\and Eric Wang}{SCM team, VMware Inc.}{\{cguo,wange\}@vmware.com}
+\authorinfo{Congbin Guo\and Eric Wang}{VMware Inc.}{\{cguo,wange\}@vmware.com}
 \maketitle
 \abstract{
   % the problem
@@ -32,31 +32,48 @@
 }
 
 \keywords
-Git, transfer protocol, large repository, pack file, Git object model
+Git, transfer protocol, VCS, pack file, Git object model, spare
+clone
 
 \section{Introduction}
 %(
 % describe the problem
-Git is popular but still has problems when work with large remote repositories, which may consume lots of time and network bandwidth in data transferring from, and to, the repository.
-The reason is Git store the history of snapshots of whole workspace, which might has tremendous amount of files, especially binary files.
-The feature to only transfer subdirectories has been desired for long time.
-However, it isn't included in current and recent future release of Git.
+Git is popular but still has problems when work with large remote repositories,
+which may consume lots of time and network bandwidth in data transferring from,
+and to, the repository.
+The reason is Git stores the history of whole workspace snapshots, which may 
+have huge amount of directories and files.
+The feature to only transfer subdirectories, like other popular VCS systems do
+(e.g. Perforce), has been desired for long time.
+But it is not in the plan of Git developers, because it may break Git
+repository consistency and many Git features.
+The suggestion from Git developers to deal with large repository is to break
+into small ones, or omit some history by using Git shallow clone.
+Neither one is very attractive to enterprise level users.
 
 % my contribution
-In this paper, we present a complete solution to help Git user to work with large repositories:
+In this paper, we propose a solution to transfer subdirectories specified by
+user from and to remote repositories efficiently.
+
 \begin{itemize}
-  \item We analyze the Git transfer protocol first, and extend it to allow subdirectories negotiation between server and client.
-  \item Based on the extended protocol, we describe how to minimize the transferred data size to client by excluding some Git objects.
-  \item In client side, we talk a way how to create new commits with partial workspace just like in a full cloned workspace.
+  \item We analyze the Git transfer protocol first, and extend it to allow
+      subdirectories discovery and negotiation between server and client.
+  \item Based on the extended protocol, we describe how to optimize the
+      transferred data size to client by excluding some Git objects.
+  \item More importantly, we discuss how to keep the newly created commits from
+      the ``partial'' workspace as consistent as created from a full workspace.
 \end{itemize}
 
 %)
 \section{Background}
 \subsection{Git object model}
-Git stores files, directories, and change histories as unique objects, i.e. \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1 check sum value\cite{gitobj}.
+Git stores files, directories, and change histories as unique objects, i.e.
+\emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1
+check sum value\cite{gitobj}.
 It can be better explained by an example.
 Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
-\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was added.
+\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was
+added.
 \begin{figure}
   \centering
   \input figures/workspace.tikz
@@ -65,7 +82,8 @@ Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
 \end{figure}
 
 Figure \ref{fig:git-repo} shows the repository.
-Accordingly, there are two commit objects, $C$ and $C'$, with tip $H$ pointing to the current version, i.e. \verb|HEAD|.
+Accordingly, there are two commit objects, $C$ and $C'$, with tip $H$ pointing
+to the current version, i.e. \verb|HEAD|.
 Because \verb|file3| is unchanged, the two commits share blob $B_3$.
 
 \begin{figure}[htpb]
@@ -74,9 +92,10 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
   \caption{Git repository for a sample workspace}
   \label{fig:git-repo}
 \end{figure}
+
 \subsection{Git transfer protocol}
 %(
-Current Git transfer protocol is simple and clear.
+Current Git transfer protocol is simple and clear\cite{tran-protocol}.
 The steps of transferring data from server, i.e. cloning or fetching, is shown in Figure \ref{fig:git-proto-clone-seq}:
 
 \begin{enumerate}
@@ -121,7 +140,7 @@ To support subdirectories transferring between server and client needs to resolv
 Our solution includes both server side and client side changes.
 \subsection{Server side}
 We add two more steps in server side, one is negotiating subdirectories, another is excluding uninterested objects from packing.
-\subsubsection{Negotiate subdirectories}
+\subsubsection{Subdirectories Negotiation}
 Client can send all subdirectories interested and excluded when it has enough information.
 Otherwise, the negotiation is necessary.
 The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
@@ -150,10 +169,10 @@ The extension includes three primitive commands.
 The BNF of those three commands.
 ...
 
-\subsubsection{Exclude objects from packing}
+\subsubsection{Packing Objects Optimization}
 In standard Git protocol, the object packing can be regards as a piped command, i.e.
 \begin{verbatim}
-git-object-list|git-pack-objects
+git-rev-list|git-pack-objects
 \end{verbatim}
 That is, get a list of all commits (and its associated objects) first, then pack them.
 
@@ -174,11 +193,11 @@ The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blo
 After that, we have a reduced object list, and pass that to \verb|git-pack-objects| command to pack.
 The whole process can be regarded as a command as:
 \begin{verbatim}
-git-object-list|filter($D_i$, $D_e$)|git-pack-objects
+git-rev-list|filter($D_i$, $D_e$)|git-pack-objects
 \end{verbatim}
 
 \subsection{Client side}
-\subsubsection{Receive objects pack}
+\subsubsection{Packing Objects Receiving}
 The pack stream transferred to the client can not be handled by Git directly due to the excluded objects.
 We create placeholder files in client for the excluded ones, which we call \emph{Git mock objects}.
 The mock objects have same name, i.e. the SHA1 string of the object, as the original objects.
@@ -230,7 +249,7 @@ Figure \ref{fig:mock-objects} shows the resulting diagram with the mock objects.
 
 With those mock objects, Git does not complain anything about the data from the server.
 
-\subsubsection{Check out workspace}
+\subsubsection{Workspace Checking-out}
 Like normal Git objects, the mock objects can also be checked out to workspace.
 The checked-out mock blob objects is a empty file.
 And the checked-out mock tree object is nothing.
@@ -246,7 +265,7 @@ That is what user really want to get initially.
 
 
 
-\subsubsection{Create new commits and push back to server}
+\subsubsection{New Commits Creating}
 Git staging area, or \emph{index}, which generally kept in \verb|.git/index|,
 is the key data structure for Git to prepare a new commit.
 It contains a sorted list of all path names of current tree, each with
