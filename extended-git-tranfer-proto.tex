@@ -93,7 +93,7 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
   \label{fig:git-repo}
 \end{figure}
 
-\subsection{Git transfer protocol}
+\subsection{Git Transfer Protocol}
 %(
 Current Git transfer protocol is simple and clear\cite{tran-protocol}.
 The steps of transferring data from server, i.e. cloning or fetching, is shown in Figure \ref{fig:git-proto-clone-seq}:
@@ -112,20 +112,10 @@ The steps of transferring data from server, i.e. cloning or fetching, is shown i
   \caption{Transferring Git objects from server}
   \label{fig:git-proto-clone-seq}
 \end{figure}
-The steps of transferring data to server, i.e. pushing, is shown in Figure \ref{fig:git-proto-push-seq}:
-\begin{enumerate}
-  \item Client initiates the request by calling \verb|git-recive-pack| on server.
-  \item Serve advertises all current references SHA1s ($H_S$) to the client.
-  \item Client calculates all objects (commits and all other associated objects) according to local reference SHA1s ($H_C$) and those advertised by server $H_S$, i.e. $[H_C, H_S)$, packs them and writes to a stream connected to the server.
-\end{enumerate}
-
-
-\begin{figure}
-  \centering
-  \input{figures/git-proto-push-seq.tikz}
-  \caption{Transferring Git objects to server}
-  \label{fig:git-proto-push-seq}
-\end{figure}
+The Git transfer protocol also covers the opposite direction, i.e. transfer
+data from client to server, also known as pushing.
+Because it is fully reused in our solution, we don't describe it in detail
+here.
 
 \section{The problem}
 To support subdirectories transferring between server and client needs to resolve below problems:
@@ -305,6 +295,8 @@ Below is the more detail steps:
 
 
 \section{The details}
+\subsection{The Implementation}
+\subsection{Experiment}
 
 
 \section{Related work}
