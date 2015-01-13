@@ -16,19 +16,30 @@
 }
 
 \begin{document}
-\title{An Efficient Solution to Work with Large Git Repository}
+\title{Bidirectional Git Objects Transferring by Subdirectories Specified}
 \authorinfo{Congbin Guo\and Eric Wang}{VMware Inc.}{\{cguo,wange\}@vmware.com}
 \maketitle
 \abstract{
   % the problem
-  The lack of partial transferring (e.g. cloning, fetching, or pushing) by subdirectories consumes lots of time and network bandwidth when a Git client talks to a remote repository.
+  The lack of subdirectories transferring of a Git repository (e.g. cloning,
+  fetching, or pushing) consumes lots of time and network bandwidth.
   % why interesting
-  This downgrades the development efficiency against many large enterprise level Git repositories, which might have long history or many files.
+  This downgrades the user expierence and development efficiency against many
+  large enterprise level Git repositories that have long history and huge
+  amount of working files.
   % solution
-  To support bidirectional transferring by subdirectories specified by a client from a repository, we extends the current Git transfer protocol to allow the selected subdirectories information passed to server, and implement new server side to trim uninterested subdirectories from Git pack file.
-  by steps to communicate extra information between server and client side. Furthuremore, we define 
+  To support bidirectional transferring by subdirectories specified by a client
+  from a remote repository, we extend the current Git transfer protocol to
+  allow the subdirecories negotiation between server and client.
+  Based on the extended protocol, we implement new server side and client side
+  program to optimize Git objects transferring by removing unnecessary objects
+  and replace them with special placeholders.
+  The new client side program can also keep the data consistency of newly
+  creatd commits.
   % value
-  The presented extended protocol improves the development efficiency and keeps the Git experience as good as common Git work flows, finally help the Git adoption in enterprises.
+  The proposed solution addresses the pain-point of work with large Git
+  repository, helps the transistion from legacy VCS to Git, boost the adoption
+  of Git in large enterprises.
 }
 
 \keywords
@@ -160,6 +171,40 @@ The extension includes three primitive commands.
   \item \verb|exclude| used to specify which subdirectories should be excluded from result.
 \end{itemize}
 
+\begin{figure}
+  \centering
+  \begin{verbatim}
+  upload-request = dir-commands
+                   want-list
+                   have-list
+                   compute-end
+
+  dir-commands = *dir-command
+
+  dir-command = PKT-LINE(dir SP obj-id SP path LF)
+  \end{verbatim}
+  \caption{Extended Git transfer protocol ABNF}
+  \label{fig:git-proto-ext-ABNF}
+\end{figure}
+
+The server response of \verb|dir| command is same with command of 
+\verb|git ls-tree|. 
+\begin{figure}
+  \centering
+  \begin{verbatim}
+  advertised-dirs = dir-list
+                    flush-pkt
+
+  dir-list = *(dir-line)
+
+  dir-line = PKT-LINE(mode SP type SP obj-id \
+                      TAB name LF)
+
+  type = tree | blob
+  \end{verbatim}
+  \caption{Server response in ABNF}
+  \label{fig:server-response-ABNF}
+\end{figure}
 The BNF of those three commands.
 ...
 
@@ -300,7 +345,30 @@ Below is the more detail steps:
 
 \section{The details}
 \subsection{The Implementation}
+We developed a prototype to prove the solution works.
+
 \subsection{Experiment}
+We had a basic experiment to measure teh performanc of the prototype.
+Though the prototype was not fully optimized, we still saw sustantial
+performance improvements in both the Git objects store size and the time to
+transfer it.
+
+The repo we used is a Git mirror of a perforce depot, i.e.
+\verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
+\verb|git.eng.vmware.com|.
+
+In the experiment, we performed four operations:
+\begin{itemize}
+  \item \emph{full clone}: clone the entire repository by standard clone
+    command.
+  \item \emph{sparse clone 1}: only clone the \verb|README| file.
+  \item \emph{sparse clone 2}: only clone the \verb|README| file and the
+  \verb|doc/| directory.
+  \item \emph{sparse clone 3}: clone all files and directories which is the
+    worst case.
+\end{itemize}
+Table \ref{tbl:repo-info} shows the static data of repositories cloned.
+
 
 
 \section{Related work}
