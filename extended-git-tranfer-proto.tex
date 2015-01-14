@@ -38,13 +38,13 @@
   creatd commits.
   % value
   The proposed solution addresses the pain-point of work with large Git
-  repository, helps the transistion from legacy VCS to Git, boost the adoption
-  of Git in large enterprises.
+  repository, helps the transistion from legacy version control system to Git,
+  boost the adoption of Git in large enterprises.
 }
 
 \keywords
-Git, transfer protocol, VCS, pack file, Git object model, spare
-clone
+Git, transfer protocol, version control system, pack file, Git object model,
+spare clone
 
 \section{Introduction}
 %(
@@ -54,8 +54,8 @@ which may consume lots of time and network bandwidth in data transferring from,
 and to, the repository.
 The reason is Git stores the history of whole workspace snapshots, which may 
 have huge amount of directories and files.
-The feature to only transfer subdirectories, like other popular VCS systems do
-(e.g. Perforce), has been desired for long time.
+The feature to only transfer subdirectories, like other popular version control
+systems do (e.g. Perforce), has been desired for long time.
 But it is not in the plan of Git developers, because it may break Git
 repository consistency and many Git features.
 The suggestion from Git developers to deal with large repository is to break
@@ -82,13 +82,13 @@ Git stores files, directories, and change histories as unique objects, i.e.
 \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1
 check sum value\cite{gitobj}.
 It can be better explained by an example.
-Figure \ref{fig:workspace} shows the two snapshots of a sample workspace.
+Figure \ref{fig:workspace} shows the two snapshots of a example workspace.
 \verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was
 added.
-\begin{figure}
+\begin{figure}[htpb]
   \centering
   \input figures/workspace.tikz
-  \caption{Snapshots of the sample workspace}
+  \caption{Snapshots of the example workspace}
   \label{fig:workspace}
 \end{figure}
 
@@ -100,7 +100,7 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
 \begin{figure}[htpb]
   \centering
   \input{figures/git-model.tikz}
-  \caption{Git repository for a sample workspace}
+  \caption{Git repository for a example workspace}
   \label{fig:git-repo}
 \end{figure}
 
@@ -117,19 +117,20 @@ The steps of transferring data from server, i.e. cloning or fetching, is shown i
   \item Server calculates all commit objects (and all other Git objects associated) in range of $[H_w, H_h)$, then writes to a stream connected to the client.
 \end{enumerate}
 
-\begin{figure}
+\begin{figure}[htpb]
   \centering
   \input{figures/git-proto-clone-seq.tikz}
   \caption{Transferring Git objects from server}
   \label{fig:git-proto-clone-seq}
 \end{figure}
 The Git transfer protocol also covers the opposite direction, i.e. transfer
-data from client to server, also known as \emph{push}.
+data from client to server, i.e.\emph{push}.
 Because it is fully reused in our solution, we don't describe it in detail
 here.
 
 \section{The problem}
-To support subdirectories transferring between server and client needs to resolve below problems:
+To support subdirectories transferring between server and client needs to
+resolve below problems:
 \begin{itemize}
   \item How does the client discovery the subdirectories, and negotiate with
       the server that which of them to be transferred?
@@ -150,46 +151,61 @@ Client can send all subdirectories interested and excluded when it has enough in
 Otherwise, the negotiation is necessary.
 The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
 
-We add an extra step in the standard transfer protocol to allow subdirectories negotiation between client and server.
-The step is initiated by client, so it's transparent for common Git client, which can ensure the server compatibility for all kinds of client.
-\begin{figure}
+We add an extra step in the standard transfer protocol to allow subdirectories
+negotiation between client and server.
+The step is initiated by client, so it's transparent for common Git client,
+which can ensure the server compatibility for all kinds of client.
+\begin{figure}[htpb]
   \centering
   \input{figures/git-proto-ext-seq.tikz}
   \caption{Extended Git transfer protocol}
   \label{fig:git-proto-ext-seq}
 \end{figure}
 
-Operations and server response
-
-
+By following the style in \cite{tran-protocol}, we define the extended
+protocol command in ABNF as well, which shown in Figure
+\ref{fig:git-proto-ext-ABNF}.
 The extension includes three primitive commands.
 \begin{itemize}
-  \item \verb|dir| get directory of a SHA1:path.
-    this is equivalent to command \verb|git ls-tree SHA1 -- path|.
-    Server returns a list of files or directories under the path specified.
-  \item \verb|include| used to specify which subdirectories will be included in result.
-  \item \verb|exclude| used to specify which subdirectories should be excluded from result.
+  \item \verb|dir| get a list of files and directories under \verb|path| of a
+    \verb|SHA1|, which equivalent to what command
+    \verb|git ls-tree SHA1 -- path| does.
+  \item \verb|include| specify files or subdirectories to be included in data
+    transferring.
+  \item \verb|exclude| specify files or subdirectories to be excluded from data
+    transferring.
 \end{itemize}
 
-\begin{figure}
+\begin{figure}[htpb]
   \centering
   \begin{verbatim}
   upload-request = dir-commands
                    want-list
                    have-list
+                   dir-requests
                    compute-end
 
   dir-commands = *dir-command
 
   dir-command = PKT-LINE(dir SP obj-id SP path LF)
+
+  dir-requests = *(dir-request)
+
+  dir-request = include-line | exclude-line
+
+  include-line = PKT-LINE(include SP path LF)
+
+  exclude-line = PKT-LINE(exclude SP path LF)
   \end{verbatim}
-  \caption{Extended Git transfer protocol ABNF}
+  \caption{ABNF of extended Git transfer protocol}
   \label{fig:git-proto-ext-ABNF}
 \end{figure}
 
-The server response of \verb|dir| command is same with command of 
-\verb|git ls-tree|. 
-\begin{figure}
+We define the server response of \verb|dir| command in ABNF as well, as shown
+in Figure \ref{fig:server-response-ABNF}.
+It follows the output format of command \verb|git ls-tree|, which we reuse to
+help create the response.
+\begin{figure}[htpb]
   \centering
   \begin{verbatim}
   advertised-dirs = dir-list
@@ -202,13 +218,46 @@ The server response of \verb|dir| command is same with command of
 
   type = tree | blob
   \end{verbatim}
-  \caption{Server response in ABNF}
+  \caption{ABNF of server response}
   \label{fig:server-response-ABNF}
 \end{figure}
-The BNF of those three commands.
-...
 
-\subsubsection{Packing Objects Optimization}
+In the example reponsitory shown in Figure \ref{fig:git-repo}, suppose the
+client only want \verb|file1|.
+The subdirectories discovery and negotiation may look like what shown in Figure
+\ref{fig:c/s-comm}.
+All lines asterisked are the extension proposed.
+
+\begin{figure}[htpb]
+  \centering
+  \begin{verbatim}
+    S: 00887217a7c...ba0 HEAD\0multi_ack thin-pack \
+       side-band side-band-64k ofs-delta shallow \
+       no-progress include-tag
+    S: 003f7217a7c...ba0 refs/heads/master
+    S: 0000
+  * C: 002fdir 7217a7c...ba0 /\n
+  * C: 0000
+  * S: 003b040000 tree 0760d56...353\t/dir1\n
+  * S: 003c100644 blob 3176af7...989\t/file1\n
+  * S: 003c100644 blob 1270084...e27\t/file4\n
+  * S: 0000
+    C: 0054want 7217a7c...ba0\0multi_ack \
+       side-band-64k ofs-delta\n
+    C: 0000
+    C: 0032have 5a3f6be...b68a\n
+    C: 0000
+  * C: 000ainclude /\n
+  * C: 000fexclude /file4\n
+  * C: 000eexclude /dir1\n
+  * C: 0000
+    C: 0009done\n
+  \end{verbatim}
+  \caption{Server/Client communication example}
+  \label{fig:c/s-comm}
+\end{figure}
+
+\subsubsection{Objects Packing Optimization}
 In standard Git protocol, the object packing can be regards as a piped command, i.e.
 \begin{verbatim}
 git-rev-list|git-pack-objects
@@ -220,12 +269,12 @@ But which objects can be removed from the packing list?
 We must keep commit and tag objects for repository consistency.
 So only tree and blob objects can be excluded, if they are not in the subdirectories client want.
 
-In the sample repository shown in Figure \ref{fig:git-repo}, suppose the client only want \verb|file1| (represented as $B_1$ and $B'_1$).
+In the example repository shown in Figure \ref{fig:git-repo}, suppose the client only want \verb|file1| (represented as $B_1$ and $B'_1$).
 The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blob objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure \ref{fig:find-obj-to-remove}.
 \begin{figure}[htpb]
   \centering
   \input{figures/git-model-filtering.tikz}
-  \caption{Objects can be excluded in the sample repository}
+  \caption{Objects can be excluded in the example repository}
   \label{fig:find-obj-to-remove}
 \end{figure}
 
@@ -293,7 +342,8 @@ Like normal Git objects, the mock objects can also be checked out to workspace.
 The checked-out mock blob objects is a empty file.
 And the checked-out mock tree object is nothing.
 
-The checking out of those mock objects can make Git think the current workspace is dirty.
+The checking out of those mock objects can make Git regards the current
+workspace is dirty.
 That is because Git recalculates the SHA1 value of working files and compare what recorded in Git index.
 Obviously, they are different.
 

@@ -8,7 +8,7 @@
   \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
   \end{umlcall} 
   \begin{umlcall}[op={$<H_w, H_h>$}, return={pack stream}]{c}{s}
-    \begin{umlcall}[op={pack-objects($[H_w, H_h)$)}]{s}{s}
+    \begin{umlcall}[op={pack-objs}]{s}{s}
     \end{umlcall}                 
   \end{umlcall}  
 \end{umlcall}
