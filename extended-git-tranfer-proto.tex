@@ -107,14 +107,21 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
 \subsection{Git Transfer Protocol}
 %(
 Current Git transfer protocol is simple and clear\cite{tran-protocol}.
-The steps of transferring data from server, i.e. cloning or fetching, is shown in Figure \ref{fig:git-proto-clone-seq}:
+The steps of transferring data from server, i.e. cloning or fetching, is shown
+in Figure \ref{fig:git-proto-clone-seq}:
 
 \begin{enumerate}
-  \item Client initiates the request by calling \verb|git-upload-pack| on server.
+  \item Client initiates the request by calling \verb|git-upload-pack| on
+    server.
   \item Server advertises all current reference SHA1s ($H_S$) to the client.
-  \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have| ($H_h$), which indicates the start and end SHA1 of commit objects to be transferred.
-    In case of cloning, the list of \verb|have| is skipped since the client has nothing yet.
-  \item Server calculates all commit objects (and all other Git objects associated) in range of $[H_w, H_h)$, then writes to a stream connected to the client.
+  \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have|
+    ($H_h$), which indicates the start and end SHA1 of commit objects to be
+    transferred.
+    In case of cloning, the list of \verb|have| is skipped since the client has
+    nothing yet.
+  \item Server calculates all commit objects (and all other Git objects
+    associated) in range of $[H_w, H_h)$, then writes to a stream connected to
+    the client.
 \end{enumerate}
 
 \begin{figure}[htpb]
@@ -145,11 +152,14 @@ resolve below problems:
 \section{Solution}
 Our solution includes both server side and client side changes.
 \subsection{Server side}
-We add two more steps in server side, one is negotiating subdirectories, another is excluding uninterested objects from packing.
+We add two more steps in server side, one is negotiating subdirectories,
+another is excluding uninterested objects from packing.
 \subsubsection{Subdirectories Negotiation}
-Client can send all subdirectories interested and excluded when it has enough information.
+Client can send all subdirectories interested and excluded when it has enough
+information.
 Otherwise, the negotiation is necessary.
-The subdirectories negotiation is an interactive process because the client may know nothing about the directories, especially in cloning.
+The subdirectories negotiation is an interactive process because the client may
+know nothing about the directories, especially in cloning.
 
 We add an extra step in the standard transfer protocol to allow subdirectories
 negotiation between client and server.
@@ -293,21 +303,33 @@ After that, we have a reduced object list, and then pass it to
 
 \subsection{Client side}
 \subsubsection{Packed Objects Receiving}
-The pack stream transferred to the client can not be handled by Git directly due to the excluded objects.
-We create placeholder files in client for the excluded ones, which we call \emph{Git mock objects}.
-The mock objects have same name, i.e. the SHA1 string of the object, as the original objects.
+The pack stream transferred to the client can not be handled by Git directly
+due to the excluded objects.
+We create placeholder files in client for the excluded ones, which we call
+\emph{Git mock objects}.
+The mock objects have same name, i.e. the SHA1 string of the object, as the
+original objects.
 But the content of mock objects is empty.
 
-The reason why we can use empty file as the placeholder is because that Git performs consistency checks based on SHA1 values get from the object file name, rather than re-calculate it again from the content. In other words, Git only cares about the object file name instead of the content.
+The reason why we can use empty file as the placeholder is because that Git
+performs consistency checks based on SHA1 values get from the object file name,
+rather than re-calculate it again from the content.
+In other words, Git only cares about the object file name instead of the
+content.
 
-Figure \ref{fig:cmd-create-mock} shows one way to create empty blob and tree object by command line.
-The object file prefixed with \verb|e69de29| and \verb|4b825dc| are the mock blob and tree object we want.
-They can play the placeholder to any same type Git object by just renaming it to target SHA1.
+Figure \ref{fig:cmd-create-mock} shows one way to create empty blob and tree
+object by command line.
+The object file prefixed with \verb|e69de29| and \verb|4b825dc| are the mock
+blob and tree object we want.
+They can play the placeholder to any same type Git object by just renaming it
+to target SHA1.
 The benefits of using those mock objects are:
 \begin{enumerate}
-  \item They are still Git objects with correct format, though named with SHA1 string of another object.
+  \item They are still Git objects with correct format, though named with SHA1
+    string of another object.
   \item Their size is small and easy to be created.
-  \item An empty tree object can dereference all associated objects, eliminating the need for placeholders for sub-trees and blobs.
+  \item An empty tree object can dereference all associated objects,
+    eliminating the need for placeholders for sub-trees and blobs.
 \end{enumerate}
 
 
@@ -328,11 +350,13 @@ The benefits of using those mock objects are:
   \label{fig:cmd-create-mock}
 \end{figure}
 
-Figure \ref{fig:mock-objects} shows the resulting diagram with the mock objects.
+Figure \ref{fig:mock-objects} shows the resulting diagram with the mock
+objects.
 
 \begin{itemize}
   \item The mock object $B_m$ replaces the blob object $B_4$.
-  \item The mock tree object $T_m$ and $T'_m$ replace two tree objects, $T_2$ and $T'_2$.
+  \item The mock tree object $T_m$ and $T'_m$ replace two tree objects, $T_2$
+    and $T'_2$.
 \end{itemize}
 
 \begin{figure}[htpb]
@@ -342,7 +366,8 @@ Figure \ref{fig:mock-objects} shows the resulting diagram with the mock objects.
   \label{fig:mock-objects}
 \end{figure}
 
-With those mock objects, Git does not complain anything about the data from the server.
+With those mock objects, Git does not complain anything about the data from the
+server.
 
 \subsubsection{Workspace Checking-out}
 Like normal Git objects, the mock objects can also be checked out to workspace.
@@ -351,7 +376,8 @@ And the checked-out mock tree object is nothing.
 
 The checking out of those mock objects can make Git regards the current
 workspace is dirty.
-That is because Git recalculates the SHA1 value of working files and compare what recorded in Git index.
+That is because Git recalculates the SHA1 value of working files and compare
+what recorded in Git index.
 Obviously, they are different.
 
 We use \emph{Git sparse checkout} \cite{sparseco} to avoid that, which only
@@ -400,9 +426,17 @@ Below is the more detail steps:
 
 
 
-\section{The details}
+\section{System Implementation}
 \subsection{The Implementation}
 We developed a prototype to prove the solution works.
+The system level components interaction is shown in Figure
+\ref{fig:components}.
+\begin{figure}[htpb]
+  \centering
+  \input{figures/components.tikz}
+  \caption{Sparse clone components interaction}
+  \label{fig:components}
+\end{figure}
 
 \subsection{Experiment}
 We had a basic experiment to measure teh performanc of the prototype.
@@ -446,59 +480,88 @@ mechanism.
 The weak part of the work is multiple directories cannot be fully supported.
 
 \section{Limitations}
-Because of changing in Git object store, the implementation cannot support
-any Git operations care about repository, e.g. the command of \verb|fsck|,
-\verb|repack|, and \verb|gc|.
+Because of changing in Git object store, the client side repository cannot
+support any Git operations care about repository, e.g. the command of
+\verb|fsck|, \verb|repack|, and \verb|gc|.
 Additionally, since the mock tree object is empty, running the command of
 \verb|ls-tree| or \verb|cat-file| on that tree object produces empty output.
 
 Another limitation is, since the Git index is partial comparing with normal Git
-clone, commands related to Git index may give different results, e.g.
-\verb|git ls-files|.
-
-
-
-
+workspace, commands related to Git index (e.g. \verb|git ls-files|) may give
+different results.
 
 \begin{thebibliography}{10}
     \softraggedright
 
-    \bibitem{sparseco} \emph{Git-read-tree(1) Manual Page} (February
-      2013). \newblock URL
-      [https://www.kernel.org/pub/software/scm/git/docs/git-read-tree.html]
-    \bibitem{roadmap} J. Hamano (July 2008). \newblock \emph{sparse fetch}.
-    \newblock Git mailing list. \newblock URL
-      [http://thread.gmane.org/gmane.comp.version-control.git/89681/focus=90016]
-    \bibitem{gitobj} S. Chacon (July 2009).\newblock\emph{Pro Git}, section 9.2.
-      \newblock URL
-      [http://git-scm.com/book/en/Git-Internals-Git-Objects]
-      \bibitem{idx-format} \emph{GIT index format}.\newblock URL
-      https://www.kernel.org/pub/software/scm/git/docs/technical/index-format.txt
-    \bibitem{packformat} \emph{GIT pack format}.\newblock URL
-      [https://www.kernel.org/pub/software/scm/git/docs/technical/pack-format.txt]
-    \bibitem{replace} \emph{git-replace(1) Manual Page} (February 2013).\newblock
-      URL [https://www.kernel.org/pub/software/scm/git/docs/git-replace.html]
-    \bibitem{tran-protocol} \emph{Pack files transfer protocol}.\newblock URL
-      [https://www.kernel.org/pub/software/scm/git/docs/v1.7.0.5/technical/\\
-      pack-protocol.txt]
-    \bibitem{duy08}N. Duy (July 2008).\newblock \emph{git-clone: support --path
-      to do sparse clone}. \newblock Git mailing list. \newblock URL
-      [http://article.gmane.org/gmane.comp.version-control.git/89681]
-    \bibitem{newren10-0}E. Newren (July 2010). \newblock \emph{Sparse clones}.
-      \newblock Git mailing list. \newblock URL
-      http://article.gmane.org/gmane.comp.version-control.git/152020
-    \bibitem{newren10-1}E. Newren (September 2010). \newblock \emph{Sparse
-      clones}.  \newblock Git mailing list. \newblock URL
-      http://article.gmane.org/gmane.comp.version-control.git/155389
-    \bibitem{duy10-1}N. Duy (July 2010). \newblock \emph{Subtree clone?}. \newblock
-      Git mailing list. \newblock URL
-      [http://article.gmane.org/gmane.comp.version-control.git/151937]
-    \bibitem{duy10-2}N. Duy (July 2010). \newblock \emph{Subtree clone proof of
-    concept}. \newblock Git mailing list. \newblock URL
+    \bibitem{sparseco} \emph{Git-read-tree(1) Manual Page} (February 2013).
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/git-read-tree.html]
+
+    \bibitem{roadmap} J. Hamano (July 2008).
+    \newblock \emph{sparse fetch}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://thread.gmane.org/gmane.comp.version-control.git/89681/focus=90016]
+
+    \bibitem{gitobj} S. Chacon (July 2009).
+    \newblock\emph{Pro Git}, section 9.2.
+    \newblock URL
+    [http://git-scm.com/book/en/Git-Internals-Git-Objects].
+
+    \bibitem{idx-format} \emph{GIT index format}.
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/technical/\\
+    index-format.txt].
+
+    \bibitem{packformat} \emph{GIT pack format}.
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/technical/\\
+    pack-format.txt].
+
+    \bibitem{replace} \emph{git-replace(1) Manual Page} (February 2013).
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/git-replace.html].
+
+    \bibitem{tran-protocol} \emph{Pack files transfer protocol}.
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/v1.7.0.5/\\
+      technical/pack-protocol.txt].
+
+    \bibitem{duy08}N. Duy (July 2008).
+    \newblock \emph{git-clone: support --path to do sparse clone}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/89681].
+
+    \bibitem{newren10-0}E. Newren (July 2010).
+    \newblock \emph{Sparse clones}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/152020].
+
+    \bibitem{newren10-1}E. Newren (September 2010).
+    \newblock \emph{Sparse clones}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/155389].
+
+    \bibitem{duy10-1}N. Duy (July 2010).
+    \newblock \emph{Subtree clone?}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/151937].
+
+    \bibitem{duy10-2}N. Duy (July 2010).
+    \newblock \emph{Subtree clone proof of concept}.
+    \newblock Git mailing list.
+    \newblock URL
     [http://article.gmane.org/gmane.comp.version-control.git/152347].
-    \bibitem{duy10-3}N. Duy (August 2010). \newblock \emph{subtree clone v2}.
-    \newblock Git mailing list. \newblock
-    URL [http://article.gmane.org/gmane.comp.version-control.git/154343].
+
+    \bibitem{duy10-3}N. Duy (August 2010).
+    \newblock \emph{subtree clone v2}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/154343].
 \end{thebibliography}
 
 \end{document}
