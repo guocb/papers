@@ -28,7 +28,7 @@ height=1cm, minimum width=0.6cm, very thick]
 
   \node[comp, below=1cm of repo.west, anchor=north west](revlist){\verb|git|\\\verb|rev-list --all --objects|};
   \node[filter, new, below of=revlist, node distance=1.5cm](f){filter};
-  \node[view, new, anchor=west](v) at(revlist.west |- f){view};
+  \node[view, new, anchor=west](v) at(revlist.west |- f){subdirs};
   \node[comp, below =3.5cm of revlist.east, anchor=east](gitpack){Git object packing};
   \node[box, fit= (gitpack)(repo)](server){};
   \node[vlabel, anchor=north] at (server.east){Server};

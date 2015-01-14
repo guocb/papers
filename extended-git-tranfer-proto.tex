@@ -387,7 +387,7 @@ That is what user really want to get initially.
 
 
 
-\subsubsection{New Commits Creating}
+\subsubsection{New Commits Creating}\label{sec:create-new-commit}
 Git staging area, or \emph{index}, which generally kept in \verb|.git/index|,
 is the key data structure for Git to prepare a new commit.
 It contains a sorted list of all path names of current tree, each with
@@ -423,20 +423,37 @@ Below is the more detail steps:
         \verb|git update-ref|.
 \end{enumerate}
 
-
-
-
-\section{System Implementation}
-\subsection{The Implementation}
+\section{The details}
+\subsection{System Implementation}
 We developed a prototype to prove the solution works.
 The system level components interaction is shown in Figure
 \ref{fig:components}.
+The key components for the proposed solution includes:
+\begin{itemize}
+  \item \emph{Subdirs} communicates with client to track which subdirectories
+    of the repository to be transferred.
+  \item \emph{Filter} gets the objects list from
+    \verb|git rev-list| command, and filters them by subdirectories specified.
+    The component has two outputs.
+    One is \emph{real object list} that passes to object-packing component.
+    Another is \emph{mock object list}, which is a subset of filtered out
+    objects, passes to \emph{mock object builder} on client.
+  \item \emph{Mock object builder} accepts the mock object list
+    from the filter, and then cretate mock objects accordingly.
+    The mock objects are built in pack file format\cite{packformat} for better
+    performance.
+  \item \emph{Commit creator} creates new commits and ensures
+    the tree object of commit is complete as described in Section
+    \ref{sec:create-new-commit}.
+\end{itemize}
 \begin{figure}[htpb]
   \centering
   \input{figures/components.tikz}
-  \caption{Sparse clone components interaction}
+  \caption{System level components}
   \label{fig:components}
 \end{figure}
+
+\subsection{Example Work flow}
 
 \subsection{Experiment}
 We had a basic experiment to measure teh performanc of the prototype.
