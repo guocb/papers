@@ -232,7 +232,7 @@ help create the response.
   \label{fig:server-response-ABNF}
 \end{figure}
 
-In the example reponsitory shown in Figure \ref{fig:git-repo}, suppose the
+In the example repository shown in Figure \ref{fig:git-repo}, suppose the
 client only want \verb|file1|.
 The subdirectories discovery and negotiation may look like what shown in Figure
 \ref{fig:c/s-comm}.
@@ -241,9 +241,9 @@ All lines asterisked are the extension proposed.
 \begin{figure}[htpb]
   \centering
   \begin{verbatim}
-    S: 00887217a7c...ba0 HEAD\0multi_ack thin-pack \
-       side-band side-band-64k ofs-delta shallow \
-       no-progress include-tag
+    S: 00887217a7c...ba0 HEAD\0multi_ack\
+       thin-pack side-band side-band-64k\
+       ofs-delta shallow no-progress include-tag
     S: 003f7217a7c...ba0 refs/heads/master
     S: 0000
   * C: 002fdir 7217a7c...ba0 /\n
@@ -439,7 +439,7 @@ The key components for the proposed solution includes:
     Another is \emph{mock object list}, which is a subset of filtered out
     objects, passes to \emph{mock object builder} on client.
   \item \emph{Mock object builder} accepts the mock object list
-    from the filter, and then cretate mock objects accordingly.
+    from the filter, and then create mock objects accordingly.
     The mock objects are built in pack file format\cite{packformat} for better
     performance.
   \item \emph{Commit creator} creates new commits and ensures
@@ -454,14 +454,40 @@ The key components for the proposed solution includes:
 \end{figure}
 
 \subsection{Example Work flow}
+We implemented a new git remote helper\cite{git-remote-helper} for easy usage,
+which just using \emph{dirs://} as the remote repository URL scheme instead of
+\emph{ssh://}, e.g.:
+\begin{verbatim}
+$ git clone
+dirs://cguo@cguo-dev2.eng.vmware.com/build/mts/tmp/\
+     mirrors/vmware/perforce-1666_bora_prod-2015.git
+Cloning into 'perforce-1666_bora_prod-2015'...
+INFO:root:Calling editor...
+\end{verbatim}
+Then an editor was popped up to show the top level directories of the
+repository with some usage instructions, e.g.
+\begin{verbatim}
+# Git repo cguo@cguo-dev2.eng.vmware.com/build/mts/\
+  tmp/mirrors/vmware/perforce-1666_bora_prod-2015.git
+# Below is the top level file structure of the repo
+# Please uncomment the files/directories you want
+# for syntax of this file, refers to .gitignore please
+
+#/bora-vmsoft
+#/bora
+#/mojo
+#/scons
+#/vmkdrivers
+\end{verbatim}
+
 
 \subsection{Experiment}
-We had a basic experiment to measure teh performanc of the prototype.
-Though the prototype was not fully optimized, we still saw sustantial
+We had a basic experiment to measure the performance of the prototype.
+Though the prototype was not fully optimized, we still saw substantial
 performance improvements in both the Git objects store size and the time to
 transfer it.
 
-The repo we used is a Git mirror of a perforce depot, i.e.
+The repository we used is a Git mirror of a perforce depot, i.e.
 \verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
 \verb|git.eng.vmware.com|.
 
@@ -579,6 +605,11 @@ different results.
     \newblock Git mailing list.
     \newblock URL
     [http://article.gmane.org/gmane.comp.version-control.git/154343].
+
+    \bibitem{git-remote-helper} \emph{git-remote-helpers(1) Manual Page}
+        (February 2013).
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html].
 \end{thebibliography}
 
 \end{document}
