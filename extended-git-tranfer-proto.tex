@@ -30,7 +30,7 @@
   % solution
   To support bidirectional transferring by subdirectories specified by a client
   from a remote repository, we extend the current Git transfer protocol to
-  allow the subdirecories negotiation between server and client.
+  allow the subdirectories negotiation between server and client.
   Based on the extended protocol, we implement new server side and client side
   program to optimize Git objects transferring by removing unnecessary objects
   and replace them with special placeholders.
@@ -258,19 +258,31 @@ All lines asterisked are the extension proposed.
 \end{figure}
 
 \subsubsection{Objects Packing Optimization}
-In standard Git protocol, the object packing can be regards as a piped command, i.e.
+In standard Git protocol, the object packing can be regards as a piped command,
+i.e.
 \begin{verbatim}
 git-rev-list|git-pack-objects
 \end{verbatim}
-That is, get a list of all commits (and its associated objects) first, then pack them.
+That is, get a list of all commits (and its associated objects) first, then
+pack them.
 
-We try to transfer fewer objects to save time and system resources.
-But which objects can be removed from the packing list?
-We must keep commit and tag objects for repository consistency.
-So only tree and blob objects can be excluded, if they are not in the subdirectories client want.
+To save time and network bandwidth to transfer, we reduce the amount of objects
+by finding out ones can be removed.
+\begin{itemize}
+  \item We keep tag objects because they have minor impact to repository size.
+  \item We keep commit objects because they are the backbone of the repository
+    and ensure the consistency.
+  \item We remove blob and tree objects in case the files or directories they
+    represent are not in the subdirectories specified.
+\end{itemize}
 
-In the example repository shown in Figure \ref{fig:git-repo}, suppose the client only want \verb|file1| (represented as $B_1$ and $B'_1$).
-The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blob objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure \ref{fig:find-obj-to-remove}.
+In the example repository shown in Figure \ref{fig:git-repo}, suppose the
+client only wants \verb|file1| (represented as $B_1$ and $B'_1$).
+The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and
+blob objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure
+\ref{fig:find-obj-to-remove}.
+After that, we have a reduced object list, and then pass it to
+\verb|git-pack-objects| command to pack.
 \begin{figure}[htpb]
   \centering
   \input{figures/git-model-filtering.tikz}
@@ -278,14 +290,9 @@ The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blo
   \label{fig:find-obj-to-remove}
 \end{figure}
 
-After that, we have a reduced object list, and pass that to \verb|git-pack-objects| command to pack.
-The whole process can be regarded as a command as:
-\begin{verbatim}
-git-rev-list|filter($D_i$, $D_e$)|git-pack-objects
-\end{verbatim}
 
 \subsection{Client side}
-\subsubsection{Packing Objects Receiving}
+\subsubsection{Packed Objects Receiving}
 The pack stream transferred to the client can not be handled by Git directly due to the excluded objects.
 We create placeholder files in client for the excluded ones, which we call \emph{Git mock objects}.
 The mock objects have same name, i.e. the SHA1 string of the object, as the original objects.
