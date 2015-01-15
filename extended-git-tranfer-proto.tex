@@ -24,14 +24,14 @@
   The lack of subdirectories transferring of a Git repository (e.g. cloning,
   fetching, or pushing) consumes lots of time and network bandwidth.
   % why interesting
-  This downgrades the user experience and development efficiency against many
+  This downgrades the user experience and development efficiency against 
   large enterprise level Git repositories that have long history and huge
   amount of working files.
   % solution
-  To support bidirectional transferring by subdirectories specified by a client
-  from a remote repository, we extend the current Git transfer protocol to
-  allow the subdirectories negotiation between server and client.
-  Based on the extended protocol, we implement new server side and client side
+  To support bidirectional transferring from a remote repository by
+  subdirectories specified by a client, we extend the current Git transfer
+  protocol to allow the subdirectories negotiation between server and client.
+  Based on the extended protocol, we implement new server and client side
   program to optimize Git objects transferring by removing unnecessary objects
   and replace them with special placeholders.
   The new client side program can also keep the data consistency of newly
@@ -54,10 +54,10 @@ which may consume lots of time and network bandwidth in data transferring from,
 and to, the repository.
 The reason is Git stores the history of whole workspace snapshots, which may 
 have huge amount of directories and files.
-The feature to only transfer subdirectories, like other popular version control
-systems do (e.g. Perforce), has been desired for long time.
-But it is not in the plan of Git developers, because it may break Git
-repository consistency and many Git features.
+Many Git users has required the feature of transferring subdirectories, like
+other popular version control systems do (e.g. Perforce), for long time.
+But it is not in the plan of Git maintainers, because it may break Git
+repository consistency and many other Git features\cite{roadmap}.
 The suggestion from Git developers to deal with large repository is to break
 into small ones, or omit some history by using Git shallow clone.
 Neither one is very attractive to enterprise level users.
@@ -85,8 +85,7 @@ Git stores files, directories, and change histories as unique objects, i.e.
 check sum value\cite{gitobj}.
 It can be better explained by an example.
 Figure \ref{fig:workspace} shows the two snapshots of an example workspace.
-\verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was
-added.
+We modified \verb|file1| and \verb|file2|, and added a new file \verb|file4|.
 \begin{figure}[htpb]
   \centering
   \input figures/workspace.tikz
@@ -102,15 +101,15 @@ Because \verb|file3| is unchanged, the two commits share blob $B_3$.
 \begin{figure}[htpb]
   \centering
   \input{figures/git-model.tikz}
-  \caption{Git repository for a example workspace}
+  \caption{Git repository for an example workspace}
   \label{fig:git-repo}
 \end{figure}
 
 \subsection{Git Transfer Protocol}
 %(
 Current Git transfer protocol is simple and clear\cite{tran-protocol}.
-The steps of transferring data from server, i.e. cloning or fetching, is shown
-in Figure \ref{fig:git-proto-clone-seq}:
+Figure \ref{fig:git-proto-clone-seq} shows the steps of transferring data from
+server, i.e. cloning or fetching.
 
 \begin{enumerate}
   \item Client initiates the request by calling \verb|git-upload-pack| on
@@ -137,7 +136,7 @@ in Figure \ref{fig:git-proto-clone-seq}:
 \end{figure}
 The Git transfer protocol also covers the opposite direction, i.e. transfer
 data from client to server, i.e.\emph{push}.
-Because it is fully reused in our solution, we don't describe it in detail
+Because it is fully reused in our solution, we do not describe it in detail
 here.
 
 \section{The problem}
@@ -170,7 +169,7 @@ know nothing about the directories, especially in cloning.
 
 We add an extra step in the standard transfer protocol to allow subdirectories
 negotiation between client and server.
-The step is initiated by client, so it's transparent for common Git client,
+The step is initiated by client, so it is transparent for common Git client,
 which can ensure the server compatibility for all kinds of client.
 \begin{figure}[htpb]
   \centering
@@ -180,7 +179,7 @@ which can ensure the server compatibility for all kinds of client.
 \end{figure}
 
 By following the style in \cite{tran-protocol}, we define the extended
-protocol command in ABNF as well, which is shown in Figure
+protocol command in ABNF as well, which shown in Figure
 \ref{fig:git-proto-ext-ABNF}.
 The extension includes three primitive commands.
 \begin{itemize}
@@ -241,10 +240,9 @@ help create the response.
   \label{fig:server-response-ABNF}
 \end{figure}
 
-In the example repository shown in Figure \ref{fig:git-repo}, suppose the
-client only want \verb|file1|.
-The subdirectories discovery and negotiation may look like what shown in Figure
-\ref{fig:c/s-comm}.
+In the example repository shown in Figure \ref{fig:git-repo}, supposing the
+client only want \verb|file1|, the subdirectories discovery and negotiation may
+look like what shown in Figure \ref{fig:c/s-comm}.
 All lines asterisked are the extension proposed.
 
 \begin{figure}[htpb]
@@ -298,10 +296,10 @@ by finding out ones can be removed.
 
 \end{itemize}
 
-In the example repository shown in Figure \ref{fig:git-repo}, suppose the
-client only wants \verb|file1| (represented as $B_1$ and $B'_1$).
-The candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and
-blob objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure
+In the example repository shown in Figure \ref{fig:git-repo}, still supposing
+the client only wants \verb|file1| (represented as $B_1$ and $B'_1$), the
+candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blob
+objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure
 \ref{fig:find-obj-to-remove}.
 After that, we have a reduced object list, and then pass it to
 \verb|git-pack-objects| command to pack.
@@ -315,16 +313,16 @@ After that, we have a reduced object list, and then pass it to
 
 \subsection{Client side}
 \subsubsection{Packed Objects Receiving}
-The pack stream transferred to the client cannot be handled by Git directly
+The client cannot handle the pack stream transferred from server directly
 due to the excluded objects.
-We create placeholder files in client for the excluded ones, which we call
-\emph{Git mock objects}.
+We create placeholder files in client for the excluded ones.
+We call those placeholders \emph{Git mock objects}.
 The mock objects have same name, i.e. the SHA1 string of the object, as the
 original objects.
 But the content of mock objects is empty.
 
 The reason why we can use empty file as the placeholder is because that Git
-performs consistency checks based on SHA1 values get from the object file name,
+performs consistency checks based on SHA1 values got from the object file name,
 rather than re-calculate it again from the content.
 In other words, Git only cares about the object file name instead of the
 content.
@@ -340,10 +338,10 @@ The benefits of using those mock objects are:
   \item They are still Git objects with correct format, though named with SHA1
     string of another object.
 
-  \item Their size is small and easy to be created.
+  \item The cost to create them is very low because of the small file size.
 
-  \item An empty tree object can dereference all associated objects,
-    eliminating the need for placeholders for sub-trees and blobs.
+  \item An empty tree object dereferences all associated objects;
+    so eliminates the need for placeholders for all sub-trees and blobs.
 \end{enumerate}
 
 
@@ -381,11 +379,10 @@ objects.
   \label{fig:mock-objects}
 \end{figure}
 
-With those mock objects, Git does not complain anything about the data from the
-server.
+With those mock objects, Git is happy with the data transferred from server.
 
 \subsubsection{Workspace Checking-out}
-Like normal Git objects, the mock objects can also be checked out to workspace.
+Like normal Git objects, Git can also check out the mock objects into workspace.
 The checked-out mock blob objects is an empty file.
 And the checked-out mock tree object is nothing.
 
@@ -398,7 +395,7 @@ Obviously, they are different.
 We use \emph{Git sparse checkout} \cite{sparseco} to avoid that, which only
 checkout specified subdirectories from repository into workspace.
 Here we can reuse the result of subdirectories negotiation done before.
-That is what user really wants to get initially.
+That is what user exactly wants to get initially.
 
 
 
@@ -407,22 +404,23 @@ Git staging area, or \emph{index}, which generally kept in \verb|.git/index|,
 is the key data structure for Git to prepare a new commit.
 It contains a sorted list of all path names of current tree, each with
 permissions and the SHA1 of a blob object \cite{idx-format}.
-Git uses the data stored in index to create a tree object, then creates a
+Git uses the data stored in index to create a tree object; then creates a
 commit with that tree.
 Even for Git sparse checking out, in which only a part of files be checked
 out, the index still contains a full list of all files for committing.
 
-In our case, nothing can be loaded to Git index by reading mock tree objects
+In our case, Git index loads nothing by reading mock tree objects
 since they are empty.
 This results in partial Git index which cannot work properly when creating new
-commits, which all directories represented by mock tree objects regarded as
-removed.
+commits, because Git index regards all directories represented by mock tree
+objects as removed.
 
-Because it makes no sense for users to modify files out of the scope of
-subdirectories negotiated in our solution, we extract missing blob and tree
-objects information from the most recent commit, and combine it with data
-stored in the Git index to form a complete tree object, and then rewrite the
-commit to point to the complete tree object.
+It makes no sense for users to modify files out of the scope of
+subdirectories negotiated in our solution.
+Based on that, we extract missing blob and tree objects information from the
+most recent commit; combine it with data stored in the Git index to form a
+complete tree object; and then rewrite the commit to point to the complete tree
+object.
 We do the rewriting just after every new commit created.
 Below is the more detail steps:
 
@@ -432,8 +430,8 @@ Below is the more detail steps:
 
   \item Get staging files path and SHA1 information $T_t$ from Git index.
 
-  \item Combine the content of $T_h$ and $T_t$ together, then construct a new
-        tree object $T$ by command \verb|git mktree|.
+  \item Combine the content of $T_h$ and $T_t$ together; and then construct a
+        new tree object $T$ by command \verb|git mktree|.
 
   \item Run command \verb|git commit-tree |$T$ to create a new commit object
         $C$.
@@ -445,8 +443,7 @@ Below is the more detail steps:
 \section{The details}
 \subsection{System Implementation}
 We developed a prototype to prove the solution works.
-The system level components interaction is shown in Figure
-\ref{fig:components}.
+Figure \ref{fig:components} shows the system level components interaction.
 The key components for the proposed solution includes:
 \begin{itemize}
   \item \emph{Subdirs} communicates with client to track which subdirectories
@@ -461,7 +458,7 @@ The key components for the proposed solution includes:
 
   \item \emph{Mock object builder} accepts the mock object list
     from the filter, and then create mock objects accordingly.
-    The mock objects are built in pack file format\cite{packformat} for better
+    It builds the mock objects in pack file format\cite{packformat} for better
     performance.
 
   \item \emph{Commit creator} creates new commits and ensures
@@ -477,8 +474,10 @@ The key components for the proposed solution includes:
 
 \subsection{Example Work flow}
 We implemented a new git remote helper\cite{git-remote-helper} for the proposed
-protocol extension, which just using \emph{dirs://} as the remote repository
-URL scheme instead of \emph{ssh://}.
+protocol extension.
+The remote helper provides a new remote repository URL scheme \emph{dirs://}.
+By replacing normal \emph{ssh://} scheme with that, the helper calls the
+extended protocol automatically.
 The repository we used is a Git mirror of a perforce depot, i.e.\\
 \verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
 \verb|git.eng.vmware.com|, which size is about 3.0GB.
@@ -491,8 +490,8 @@ dirs://cguo@cguo-dev2.eng.vmware.com/build/mts/tmp/\
 Cloning into 'perforce-1666_bora_prod-2015'...
 INFO:root:Calling editor...
 \end{verbatim}
-An editor was popped up to show the top level directories of the repository
-with usage, e.g.
+The prototype popped up an editor to show the top level directories of the
+repository with usage, e.g.
 \begin{verbatim}
 # Git repo cguo@cguo-dev2.eng.vmware.com/build/mts/\
   tmp/mirrors/vmware/perforce-1666_bora_prod-2015.git
@@ -508,7 +507,7 @@ with usage, e.g.
 \end{verbatim}
 
 For example, we only comment out directory \verb|/scons|.
-After saving and exiting the editor, the program start the transferring.
+After saving and exiting the editor, the program starts the transferring.
 \begin{verbatim}
 remote: = Extended version of git-pack-objects =
 remote: = Transferring by subdirectories =
@@ -557,17 +556,17 @@ $ git ls-tree b72f3ee
 040000 tree 90d69f5...7c1    scons
 040000 tree 33c7dc2...344    vmkdrivers
 \end{verbatim}
-That is, the tree of rewritten commit \verb|b72f3ee| includes not only
-the subdirectory we transferred, but also others we filtered out.
+That is, the tree of rewritten commit \verb|b72f3ee| includes both
+the subdirectory we transferred, and others we filtered out.
 
-After pushing the newly created commit to share with other developers, the
-example work flow was done.
+After pushing the newly created commit back to remote, we finished the
+example work flow.
 
 \section{Related work}
 E. Newren did some inspiring work in \cite{newren10-0}, \cite{newren10-1},
 which describes the idea of just clone referenced objects to client side.
 Additionally, this work also uses \emph{git replace} mechanism to deal with
-commit history.
+commit history\cite{git-replace}.
 However, due to modification to cloned commits and index file, some common Git
 important operations cannot work perfectly, such as fetch, push, rebase, etc.
 
@@ -594,10 +593,6 @@ different results.
 \begin{thebibliography}{10}
     \softraggedright
 
-    \bibitem{sparseco} \emph{Git-read-tree(1) Manual Page} (February 2013).
-    \newblock URL
-    [https://www.kernel.org/pub/software/scm/git/docs/git-read-tree.html]
-
     \bibitem{roadmap} J. Hamano (July 2008).
     \newblock \emph{sparse fetch}.
     \newblock Git mailing list.
@@ -609,6 +604,15 @@ different results.
     \newblock URL
     [http://git-scm.com/book/en/Git-Internals-Git-Objects].
 
+    \bibitem{tran-protocol} \emph{Pack files transfer protocol}.
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/v1.7.0.5/\\
+      technical/pack-protocol.txt].
+
+    \bibitem{sparseco} \emph{Git-read-tree(1) Manual Page} (February 2013).
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/git-read-tree.html]
+
     \bibitem{idx-format} \emph{GIT index format}.
     \newblock URL
     [https://www.kernel.org/pub/software/scm/git/docs/technical/\\
@@ -619,20 +623,10 @@ different results.
     [https://www.kernel.org/pub/software/scm/git/docs/technical/\\
     pack-format.txt].
 
-    \bibitem{replace} \emph{git-replace(1) Manual Page} (February 2013).
+    \bibitem{git-remote-helper} \emph{git-remote-helpers(1) Manual Page}
+        (February 2013).
     \newblock URL
-    [https://www.kernel.org/pub/software/scm/git/docs/git-replace.html].
-
-    \bibitem{tran-protocol} \emph{Pack files transfer protocol}.
-    \newblock URL
-    [https://www.kernel.org/pub/software/scm/git/docs/v1.7.0.5/\\
-      technical/pack-protocol.txt].
-
-    \bibitem{duy08}N. Duy (July 2008).
-    \newblock \emph{git-clone: support --path to do sparse clone}.
-    \newblock Git mailing list.
-    \newblock URL
-    [http://article.gmane.org/gmane.comp.version-control.git/89681].
+    [https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html].
 
     \bibitem{newren10-0}E. Newren (July 2010).
     \newblock \emph{Sparse clones}.
@@ -645,6 +639,16 @@ different results.
     \newblock Git mailing list.
     \newblock URL
     [http://article.gmane.org/gmane.comp.version-control.git/155389].
+
+    \bibitem{git-replace} \emph{git-replace(1) Manual Page} (February 2013).
+    \newblock URL
+    [https://www.kernel.org/pub/software/scm/git/docs/git-replace.html].
+
+    \bibitem{duy08}N. Duy (July 2008).
+    \newblock \emph{git-clone: support --path to do sparse clone}.
+    \newblock Git mailing list.
+    \newblock URL
+    [http://article.gmane.org/gmane.comp.version-control.git/89681].
 
     \bibitem{duy10-1}N. Duy (July 2010).
     \newblock \emph{Subtree clone?}.
@@ -664,10 +668,6 @@ different results.
     \newblock URL
     [http://article.gmane.org/gmane.comp.version-control.git/154343].
 
-    \bibitem{git-remote-helper} \emph{git-remote-helpers(1) Manual Page}
-        (February 2013).
-    \newblock URL
-    [https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html].
 \end{thebibliography}
 
 \end{document}
