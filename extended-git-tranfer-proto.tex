@@ -456,7 +456,12 @@ The key components for the proposed solution includes:
 \subsection{Example Work flow}
 We implemented a new git remote helper\cite{git-remote-helper} for the proposed
 protocol extension, which just using \emph{dirs://} as the remote repository
-URL scheme instead of \emph{ssh://}, e.g.:
+URL scheme instead of \emph{ssh://}.
+The repository we used is a Git mirror of a perforce depot, i.e.\\
+\verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
+\verb|git.eng.vmware.com|, which size is about 3.0GB.
+
+First, we created an initial clone.
 \begin{verbatim}
 $ git clone
 dirs://cguo@cguo-dev2.eng.vmware.com/build/mts/tmp/\
@@ -464,14 +469,14 @@ dirs://cguo@cguo-dev2.eng.vmware.com/build/mts/tmp/\
 Cloning into 'perforce-1666_bora_prod-2015'...
 INFO:root:Calling editor...
 \end{verbatim}
-Then an editor was popped up to show the top level directories of the
-repository with some usage instructions, e.g.
+An editor was popped up to show the top level directories of the repository
+with usage, e.g.
 \begin{verbatim}
 # Git repo cguo@cguo-dev2.eng.vmware.com/build/mts/\
   tmp/mirrors/vmware/perforce-1666_bora_prod-2015.git
-# Below is the top level file structure of the repo
-# Please uncomment the files/directories you want
-# for syntax of this file, refers to .gitignore please
+# Below is the top level file structure of the repo.
+# Please comment out the files/directories you want.
+# This file has same syntax with '.gitignore'.
 
 #/bora-vmsoft
 #/bora
@@ -481,11 +486,10 @@ repository with some usage instructions, e.g.
 \end{verbatim}
 
 For example, we only comment out directory \verb|/scons|.
-After save and exit the editor, the program start to transferring specified
-data from remote.
+After saving and exiting the editor, the program start the transferring.
 \begin{verbatim}
-remote: ==== Extended version of git-pack-objects ====
-remote: ==== Transferring by subdirectories ====
+remote: = Extended version of git-pack-objects =
+remote: = Transferring by subdirectories =
 remote: Counting objects: 52510, done.
 ...
 \end{verbatim}
@@ -496,13 +500,13 @@ $ git clone
 ssh://cguo@cguo-dev2/build/mts/tmp/\
     mirrors/vmware/perforce-1666_bora_prod-2015.git
 Cloning into 'perforce-1666_bora_prod-2015'...
-remote: ==== Extended version of git-pack-objects ====
-remote: ==== Normal git clone ====
+remote: = Extended version of git-pack-objects =
+remote: = Normal git clone =
 remote: Counting objects: 505844, done.
 ...
 \end{verbatim}
-We can see that totoal objects transferred reduced from 505,844 to 52,510
-(about 90\% reduction!).
+The total objects transferred reduced from 505,844 to 52,510 (about 90\%
+reduction!).
 The objects size transferred also reduced from 3.0GB to 24MB (about 99\%
 reduction!).
 
@@ -510,9 +514,7 @@ Finally, we created a new commit by adding a \verb|readme| file to \verb|scons/|
 directory.
 \begin{verbatim}
 $ echo This is a test > scons/readme
-
 $ git add scons/readme
-
 $ git commit -am \
       'Subdirectories transferring is awsome!'
 = Commit rewritten to b72f3ee =
@@ -520,43 +522,24 @@ $ git commit -am \
  1 file changed, 1 insertion(+)
   create mode 100644 scons/readme
 \end{verbatim}
-From above output, we see the new commit created is \verb|b72f3ee| instead of
+From above output, we saw the new commit created is \verb|b72f3ee| instead of
 \verb|e1dfc03|.
 We ran below commands to verify the newly created commit is correct.
 \begin{verbatim}
 $ git ls-tree e1dfc03
-040000 tree 90d69f53fd7c1898b0728c8d1f6197512f2ed7c1    scons
-
+040000 tree 90d69f5...7c1    scons
 $ git ls-tree b72f3ee
-040000 tree fc6b587c8dd0e42a8e60173848feaaf69356b6d5    bora-vmsoft
-040000 tree d850081fa2270c5f8604dfdae259334ead78c68b    bora
-040000 tree 41b08a1f72ab8b08ac012d1b9fb9279c2aa07c43    mojo
-040000 tree 90d69f53fd7c1898b0728c8d1f6197512f2ed7c1    scons
-040000 tree 33c7dc28e49a804dd95b34d1579957438900a344    vmkdrivers
+040000 tree fc6b587...6d5    bora-vmsoft
+040000 tree d850081...68b    bora
+040000 tree 41b08a1...c43    mojo
+040000 tree 90d69f5...7c1    scons
+040000 tree 33c7dc2...344    vmkdrivers
 \end{verbatim}
-\subsection{Experiment}
-We had a basic experiment to measure the performance of the prototype.
-Though the prototype was not fully optimized, we still saw substantial
-performance improvements in both the Git objects store size and the time to
-transfer it.
+That is, the tree of rewritten commit \verb|b72f3ee| includes not only
+the subdirectory we transferred, but also others we filtered out.
 
-The repository we used is a Git mirror of a perforce depot, i.e.
-\verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
-\verb|git.eng.vmware.com|.
-
-In the experiment, we performed four operations:
-\begin{itemize}
-  \item \emph{full clone}: clone the entire repository by standard clone
-    command.
-  \item \emph{sparse clone 1}: only clone the \verb|README| file.
-  \item \emph{sparse clone 2}: only clone the \verb|README| file and the
-  \verb|doc/| directory.
-  \item \emph{sparse clone 3}: clone all files and directories which is the
-    worst case.
-\end{itemize}
-Table \ref{tbl:repo-info} shows the static data of repositories cloned.
-
-
+After pushing the newly created commit to share with other developers, the
+example work flow was done.
 
 \section{Related work}
 E. Newren did some inspiring work in \cite{newren10-0}, \cite{newren10-1},
