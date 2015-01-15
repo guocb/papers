@@ -5,7 +5,7 @@
 \umlobject[class=Client]{c}                                                    
 \umlobject[class=Server]{s}                                                    
 \begin{umlcall}[op={git-upload-pack}]{c}{s}
-  \begin{umlcall}[op={$H_S$}, type=return]{s}{c}
+  \begin{umlcall}[op={$H_s$}, type=return]{s}{c}
   \end{umlcall} 
   \begin{umlcall}[op={$<H_w, H_h>$}, return={pack stream}]{c}{s}
     \begin{umlcall}[op={pack-objs}]{s}{s}

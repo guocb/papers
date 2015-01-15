@@ -24,7 +24,7 @@
   The lack of subdirectories transferring of a Git repository (e.g. cloning,
   fetching, or pushing) consumes lots of time and network bandwidth.
   % why interesting
-  This downgrades the user expierence and development efficiency against many
+  This downgrades the user experience and development efficiency against many
   large enterprise level Git repositories that have long history and huge
   amount of working files.
   % solution
@@ -35,10 +35,10 @@
   program to optimize Git objects transferring by removing unnecessary objects
   and replace them with special placeholders.
   The new client side program can also keep the data consistency of newly
-  creatd commits.
+  created commits.
   % value
   The proposed solution addresses the pain-point of work with large Git
-  repository, helps the transistion from legacy version control system to Git,
+  repository, helps the transition from legacy version control system to Git,
   boost the adoption of Git in large enterprises.
 }
 
@@ -69,8 +69,10 @@ user from and to remote repositories efficiently.
 \begin{itemize}
   \item We analyze the Git transfer protocol first, and extend it to allow
       subdirectories discovery and negotiation between server and client.
+
   \item Based on the extended protocol, we describe how to optimize the
       transferred data size to client by excluding some Git objects.
+
   \item More importantly, we discuss how to keep the newly created commits from
       the ``partial'' workspace as consistent as created from a full workspace.
 \end{itemize}
@@ -82,7 +84,7 @@ Git stores files, directories, and change histories as unique objects, i.e.
 \emph{blob} \emph{tree} and \emph{commit}, with names derived from their SHA1
 check sum value\cite{gitobj}.
 It can be better explained by an example.
-Figure \ref{fig:workspace} shows the two snapshots of a example workspace.
+Figure \ref{fig:workspace} shows the two snapshots of an example workspace.
 \verb|file1| and \verb|file2| were modified, and a new file \verb|file4| was
 added.
 \begin{figure}[htpb]
@@ -113,12 +115,15 @@ in Figure \ref{fig:git-proto-clone-seq}:
 \begin{enumerate}
   \item Client initiates the request by calling \verb|git-upload-pack| on
     server.
-  \item Server advertises all current reference SHA1s ($H_S$) to the client.
+
+  \item Server advertises all current reference SHA1s ($H_s$) to the client.
+
   \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have|
     ($H_h$), which indicates the start and end SHA1 of commit objects to be
     transferred.
     In case of cloning, the list of \verb|have| is skipped since the client has
     nothing yet.
+
   \item Server calculates all commit objects (and all other Git objects
     associated) in range of $[H_w, H_h)$, then writes to a stream connected to
     the client.
@@ -141,8 +146,10 @@ resolve below problems:
 \begin{itemize}
   \item How does the client discovery the subdirectories, and negotiate with
       the server that which of them to be transferred?
+
   \item How does the server optimize the Git objects pack according to chosen
       subdirectories?
+
   \item How does the client operate with the partial Git objects store, and
       furthermore ensure the newly created commits are as good as the ones
       from fully Git objects store?
@@ -153,7 +160,7 @@ resolve below problems:
 Our solution includes both server side and client side changes.
 \subsection{Server side}
 We add two more steps in server side, one is negotiating subdirectories,
-another is excluding uninterested objects from packing.
+and another is excluding uninterested objects from packing.
 \subsubsection{Subdirectories Negotiation}
 Client can send all subdirectories interested and excluded when it has enough
 information.
@@ -173,15 +180,17 @@ which can ensure the server compatibility for all kinds of client.
 \end{figure}
 
 By following the style in \cite{tran-protocol}, we define the extended
-protocol command in ABNF as well, which shown in Figure
+protocol command in ABNF as well, which is shown in Figure
 \ref{fig:git-proto-ext-ABNF}.
 The extension includes three primitive commands.
 \begin{itemize}
   \item \verb|dir| get a list of files and directories under \verb|path| of a
     \verb|SHA1|, which equivalent to what command
     \verb|git ls-tree SHA1 -- path| does.
+
   \item \verb|include| specify files or subdirectories to be included in data
     transferring.
+
   \item \verb|exclude| specify files or subdirectories to be excluded from data
     transferring.
 \end{itemize}
@@ -273,17 +282,20 @@ i.e.
 \begin{verbatim}
 git-rev-list|git-pack-objects
 \end{verbatim}
-That is, get a list of all commits (and its associated objects) first, then
+That is, get a list of all commits (and its associated objects) first, and then
 pack them.
 
 To save time and network bandwidth to transfer, we reduce the amount of objects
 by finding out ones can be removed.
 \begin{itemize}
   \item We keep tag objects because they have minor impact to repository size.
+
   \item We keep commit objects because they are the backbone of the repository
     and ensure the consistency.
+
   \item We remove blob and tree objects in case the files or directories they
     represent are not in the subdirectories specified.
+
 \end{itemize}
 
 In the example repository shown in Figure \ref{fig:git-repo}, suppose the
@@ -303,7 +315,7 @@ After that, we have a reduced object list, and then pass it to
 
 \subsection{Client side}
 \subsubsection{Packed Objects Receiving}
-The pack stream transferred to the client can not be handled by Git directly
+The pack stream transferred to the client cannot be handled by Git directly
 due to the excluded objects.
 We create placeholder files in client for the excluded ones, which we call
 \emph{Git mock objects}.
@@ -327,7 +339,9 @@ The benefits of using those mock objects are:
 \begin{enumerate}
   \item They are still Git objects with correct format, though named with SHA1
     string of another object.
+
   \item Their size is small and easy to be created.
+
   \item An empty tree object can dereference all associated objects,
     eliminating the need for placeholders for sub-trees and blobs.
 \end{enumerate}
@@ -355,6 +369,7 @@ objects.
 
 \begin{itemize}
   \item The mock object $B_m$ replaces the blob object $B_4$.
+
   \item The mock tree object $T_m$ and $T'_m$ replace two tree objects, $T_2$
     and $T'_2$.
 \end{itemize}
@@ -371,7 +386,7 @@ server.
 
 \subsubsection{Workspace Checking-out}
 Like normal Git objects, the mock objects can also be checked out to workspace.
-The checked-out mock blob objects is a empty file.
+The checked-out mock blob objects is an empty file.
 And the checked-out mock tree object is nothing.
 
 The checking out of those mock objects can make Git regards the current
@@ -383,7 +398,7 @@ Obviously, they are different.
 We use \emph{Git sparse checkout} \cite{sparseco} to avoid that, which only
 checkout specified subdirectories from repository into workspace.
 Here we can reuse the result of subdirectories negotiation done before.
-That is what user really want to get initially.
+That is what user really wants to get initially.
 
 
 
@@ -406,19 +421,23 @@ removed.
 Because it makes no sense for users to modify files out of the scope of
 subdirectories negotiated in our solution, we extract missing blob and tree
 objects information from the most recent commit, and combine it with data
-stored in the Git index to form a complete tree object, then rewrite the commit
-to point to the complete tree object.
+stored in the Git index to form a complete tree object, and then rewrite the
+commit to point to the complete tree object.
 We do the rewriting just after every new commit created.
 Below is the more detail steps:
 
 \begin{enumerate}
   \item Get the tree object content of current version $T_h$, i.e. \\
         \verb|git cat-file -p HEAD^{tree}|.
+
   \item Get staging files path and SHA1 information $T_t$ from Git index.
+
   \item Combine the content of $T_h$ and $T_t$ together, then construct a new
         tree object $T$ by command \verb|git mktree|.
+
   \item Run command \verb|git commit-tree |$T$ to create a new commit object
         $C$.
+
   \item Update current branch tip to pointed to $C$ by command \\
         \verb|git update-ref|.
 \end{enumerate}
@@ -432,16 +451,19 @@ The key components for the proposed solution includes:
 \begin{itemize}
   \item \emph{Subdirs} communicates with client to track which subdirectories
     of the repository to be transferred.
+
   \item \emph{Filter} gets the objects list from
     \verb|git rev-list| command, and filters them by subdirectories specified.
     The component has two outputs.
     One is \emph{real object list} that passes to object-packing component.
     Another is \emph{mock object list}, which is a subset of filtered out
     objects, passes to \emph{mock object builder} on client.
+
   \item \emph{Mock object builder} accepts the mock object list
     from the filter, and then create mock objects accordingly.
     The mock objects are built in pack file format\cite{packformat} for better
     performance.
+
   \item \emph{Commit creator} creates new commits and ensures
     the tree object of commit is complete as described in Section
     \ref{sec:create-new-commit}.
@@ -506,9 +528,9 @@ remote: Counting objects: 505844, done.
 ...
 \end{verbatim}
 The total objects transferred reduced from 505,844 to 52,510 (about 90\%
-reduction!).
+reduced!).
 The objects size transferred also reduced from 3.0GB to 24MB (about 99\%
-reduction!).
+reduced!).
 
 Finally, we created a new commit by adding a \verb|readme| file to \verb|scons/|
 directory.
@@ -516,9 +538,9 @@ directory.
 $ echo This is a test > scons/readme
 $ git add scons/readme
 $ git commit -am \
-      'Subdirectories transferring is awsome!'
+      'Subdirectories transferring is awesome!'
 = Commit rewritten to b72f3ee =
-[master e1dfc03] Subdirectories transferring is awsome!
+[master e1dfc03] Subdirectories transferring is awesome!
  1 file changed, 1 insertion(+)
   create mode 100644 scons/readme
 \end{verbatim}
