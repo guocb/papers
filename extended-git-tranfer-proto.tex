@@ -454,9 +454,9 @@ The key components for the proposed solution includes:
 \end{figure}
 
 \subsection{Example Work flow}
-We implemented a new git remote helper\cite{git-remote-helper} for easy usage,
-which just using \emph{dirs://} as the remote repository URL scheme instead of
-\emph{ssh://}, e.g.:
+We implemented a new git remote helper\cite{git-remote-helper} for the proposed
+protocol extension, which just using \emph{dirs://} as the remote repository
+URL scheme instead of \emph{ssh://}, e.g.:
 \begin{verbatim}
 $ git clone
 dirs://cguo@cguo-dev2.eng.vmware.com/build/mts/tmp/\
@@ -480,7 +480,60 @@ repository with some usage instructions, e.g.
 #/vmkdrivers
 \end{verbatim}
 
+For example, we only comment out directory \verb|/scons|.
+After save and exit the editor, the program start to transferring specified
+data from remote.
+\begin{verbatim}
+remote: ==== Extended version of git-pack-objects ====
+remote: ==== Transferring by subdirectories ====
+remote: Counting objects: 52510, done.
+...
+\end{verbatim}
 
+We did another normal cloning for comparing.
+\begin{verbatim}
+$ git clone
+ssh://cguo@cguo-dev2/build/mts/tmp/\
+    mirrors/vmware/perforce-1666_bora_prod-2015.git
+Cloning into 'perforce-1666_bora_prod-2015'...
+remote: ==== Extended version of git-pack-objects ====
+remote: ==== Normal git clone ====
+remote: Counting objects: 505844, done.
+...
+\end{verbatim}
+We can see that totoal objects transferred reduced from 505,844 to 52,510
+(about 90\% reduction!).
+The objects size transferred also reduced from 3.0GB to 24MB (about 99\%
+reduction!).
+
+Finally, we created a new commit by adding a \verb|readme| file to \verb|scons/|
+directory.
+\begin{verbatim}
+$ echo This is a test > scons/readme
+
+$ git add scons/readme
+
+$ git commit -am \
+      'Subdirectories transferring is awsome!'
+= Commit rewritten to b72f3ee =
+[master e1dfc03] Subdirectories transferring is awsome!
+ 1 file changed, 1 insertion(+)
+  create mode 100644 scons/readme
+\end{verbatim}
+From above output, we see the new commit created is \verb|b72f3ee| instead of
+\verb|e1dfc03|.
+We ran below commands to verify the newly created commit is correct.
+\begin{verbatim}
+$ git ls-tree e1dfc03
+040000 tree 90d69f53fd7c1898b0728c8d1f6197512f2ed7c1    scons
+
+$ git ls-tree b72f3ee
+040000 tree fc6b587c8dd0e42a8e60173848feaaf69356b6d5    bora-vmsoft
+040000 tree d850081fa2270c5f8604dfdae259334ead78c68b    bora
+040000 tree 41b08a1f72ab8b08ac012d1b9fb9279c2aa07c43    mojo
+040000 tree 90d69f53fd7c1898b0728c8d1f6197512f2ed7c1    scons
+040000 tree 33c7dc28e49a804dd95b34d1579957438900a344    vmkdrivers
+\end{verbatim}
 \subsection{Experiment}
 We had a basic experiment to measure the performance of the prototype.
 Though the prototype was not fully optimized, we still saw substantial
