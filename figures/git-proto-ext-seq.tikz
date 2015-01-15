@@ -1,12 +1,12 @@
 %!tikz editor 1.0
 %!tikz source begin
 \begin{tikzpicture}
-\begin{umlseqdiag}                                                             
-\umlobject[class=Client]{c}                                                    
-\umlobject[class=Server]{s}                                                    
+\begin{umlseqdiag}
+\umlobject[class=Client]{c}
+\umlobject[class=Server]{s}
 \begin{umlcall}[op={git-upload-pack}, return={pack stream}]{c}{s}
     \begin{umlcall}[op={$H_s$}, type=return]{s}{c}
-    \end{umlcall} 
+    \end{umlcall}
     \begin{umlfragment}[type=loop]
         \begin{umlcall}[op={dir}]{c}{s}
         \end{umlcall}
@@ -16,10 +16,10 @@
     \begin{umlcall}[op={$<H_h, H_w, D_i, D_e>$}]{c}{s}
     \end{umlcall}
     \begin{umlcall}[op={pack-objs}]{s}{s}
-    \end{umlcall}                 
+    \end{umlcall}
     \begin{umlcall}[op={mock object list}, type=return]{s}{c}
     \end{umlcall}
-\end{umlcall}  
+\end{umlcall}
 \end{umlseqdiag}
 \end{tikzpicture}
 %!tikz source end

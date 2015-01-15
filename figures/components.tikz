@@ -6,7 +6,7 @@ height=1cm]
 \tikzstyle{comp} = [draw, rectangle, minimum height=1cm, minimum width=0.6cm,
   very thick]
 \tikzstyle{filter} = [draw, diamond, very thick]
-\tikzstyle{view} = [draw, tape, tape bend top=none, double copy shadow, fill=white, minimum 
+\tikzstyle{view} = [draw, tape, tape bend top=none, double copy shadow, fill=white, minimum
 height=1cm, minimum width=0.6cm, very thick]
 \tikzstyle{box} = [rectangle]
 \tikzstyle{network} = [draw, cloud, cloud puffs=61, fill=white, minimum width=7cm]
@@ -37,10 +37,10 @@ height=1cm, minimum width=0.6cm, very thick]
   \node[pack, below= 3.2cm of gitpack](pack){pack file};
   \node[object, left = 2mm of pack.west, anchor=east](mockobj){mock\\objects};
   \node[object, right=2mm of pack.east, anchor=west](newobj){new\\commits};
-  \node[comp, new, below =5mm of newobj](ci-ctor) {Commit\\Creator}; 
+  \node[comp, new, below =5mm of newobj](ci-ctor) {Commit\\Creator};
   \node (x) at (obj4.south-|newobj){};
   \path(newobj) to node[stream2, minimum height=8cm, pos=.48]{git push}(x);
-  \node[comp, new, above=5mm of mockobj](mockc){Mock object\\builder}; 
+  \node[comp, new, above=5mm of mockobj](mockc){Mock object\\builder};
   \node[comp, anchor=west, minimum width=45mm] (idx) at (mockobj.west |- ci-ctor) {Git \emph{Index}};
   \draw[olist] (idx) -- (ci-ctor);
   \draw[olist] (pack) -- (ci-ctor);
@@ -58,7 +58,7 @@ height=1cm, minimum width=0.6cm, very thick]
 
   \draw[olist](f) to node{real obj\\list} (gitpack);
   \draw[olist](f) to [in=90, out=-140] node[near start]{mock obj\\list} (mockc);
-  \path(gitpack) to node[stream2, minimum height=30mm, pos=.5, label={[above]45:git fetch}]{} 
+  \path(gitpack) to node[stream2, minimum height=30mm, pos=.5, label={[above]45:git fetch}]{}
      node [network, aspect=3, pos=.3]{Network} (pack);
   \path(mockc) to node[stream] {} (mockobj);
 %  \node[draw, single arrow, minimum height=3cm, align=left, text justified] at (0, 0){test\\1};
