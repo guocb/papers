@@ -24,22 +24,24 @@
   The lack of subdirectories transferring of a Git repository (e.g. cloning,
   fetching, or pushing) consumes lots of time and network bandwidth.
   % why interesting
-  This downgrades the user experience and development efficiency against
+  This limitation decreases users experience and reduces development efficiency
+  against
   large enterprise level Git repositories that have long history and huge
   amount of working files.
   % solution
   To support bidirectional transferring from a remote repository by
-  subdirectories specified by a client, we extend the current Git transfer
+  subdirectories specified by a client, we extended the existing Git transfer
   protocol to allow the subdirectories negotiation between server and client.
-  Based on the extended protocol, we implement new server and client side
+  Based on the extended protocol, we implemented new server and client side
   program to optimize Git objects transferring by removing unnecessary objects
   and replace them with special placeholders.
-  The new client side program can also keep the data consistency of newly
+  The new client side program can still maintain the data consistency of newly
   created commits.
   % value
   The proposed solution addresses the pain-point of work with large Git
-  repository, helps the transition from legacy version control system to Git,
-  boosts the adoption of Git in large enterprises.
+  repository, and it helps the transition from legacy version control system to
+  Git as well as
+  boosts the adoption of Git at large enterprises.
 }
 
 \keywords
