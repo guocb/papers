@@ -1,4 +1,4 @@
-\begin{tikzpicture}[node distance=1.5cm, every node/.style={align=center}]
+\begin{tikzpicture}
 \input figures/git-model-base.input
 \begin{pgfonlayer}{background}
   \node[ellipse, fill=black!20, fit=(tr1_1) (b1_2) (b1_3), xscale=0.75,

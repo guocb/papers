@@ -18,7 +18,7 @@ height=1cm, minimum width=0.6cm, very thick]
 \tikzstyle{stream2} = [stream] %, shape border rotate=180]
 \tikzstyle{vlabel} = [anchor=south, rotate=-90]
 
-\begin{tikzpicture}[node distance=2.5cm, every node/.style={align=center}]
+\begin{tikzpicture}
   \node[matrix, label={above:Server Repository}, column sep=2mm](repo)
   {
     \node[object](obj1){loose\\object}; &
