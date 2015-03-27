@@ -1,26 +1,45 @@
-\documentclass[17pt, a1paper, portrait, margin=0mm, innermargin=0mm,
-blockverticalspace=0mm, colspace=4mm, subcolspace=0mm]{tikzposter}
-\geometry{paperwidth=24in, paperheight=36in}
+\documentclass[final]{beamer}
+\usepackage[orientation=portrait, size=custom, width=60.96, height=91.44]{beamerposter}
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes, backgrounds, chains, decorations, calc, fit, shadows}
+\usepackage{pgf}
+\usepackage{tikzuml-v1.0b/tikz-uml}
+\usepackage{scalefnt}
+\mode<presentation>{\usetheme{I6pd2}}
 
-\title{Bidirectional Git Objects Transferring by Subdirectories Specified}
+
+\title{Bidirectional Git Objects Transferring\\by Subdirectories Specified}
 \author{Congbin Guo \& Eric Wang}
 \institute{VMware Inc.}
 %\titlegraphic{\includegraphics{figures/radio-2015.jpg}}
 
-\tikzposterlatexaffectionproofoff
-\usetheme{Desert}
+%\usetheme{Desert}
 \begin{document}
-\maketitle
-\begin{columns}
-    \column{0.5}
-    \block{Abstract}{
+%\maketitle
+\begin{frame}
+  \begin{columns}[t]
+    \begin{column}{.5\linewidth}
+      \begin{block}{Abstract}
         \input abstract.input
-    }
-    \block{Introduction}{
-      \begin{tikzfigure}
-      \end{tikzfigure}
-    }
-    \column{0.5}
-    \block{new block}{sss}
-\end{columns}
+      \end{block}
+      \begin{block}{Introduction}
+        \begin{figure}[htpb]
+          \tikzstyle{every node}=[node distance=15mm]
+          \centering
+          \resizebox{1\textwidth}{!}{
+            {
+              \scalefont{0.5}
+              \input figures/git-model-filtering.tikz
+            }
+          }
+        \end{figure}
+      \end{block}
+    \end{column}
+    \begin{column}{.5\linewidth}
+      \begin{block}{new block}
+        sss
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
 \end{document}
