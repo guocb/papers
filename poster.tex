@@ -1,6 +1,7 @@
 \documentclass[17pt, a1paper, portrait, margin=0mm, innermargin=0mm,
 blockverticalspace=0mm, colspace=4mm, subcolspace=0mm]{tikzposter}
 \geometry{paperwidth=24in, paperheight=36in}
+\usepackage{scalefnt}
 
 \title{Bidirectional Git Objects Transferring by Subdirectories Specified}
 \author{Congbin Guo \& Eric Wang}
@@ -11,16 +12,54 @@ blockverticalspace=0mm, colspace=4mm, subcolspace=0mm]{tikzposter}
 \usetheme{Desert}
 \begin{document}
 \maketitle
+\block{Abstract}{
+  \input abstract.input
+}
 \begin{columns}
     \column{0.5}
-    \block{Abstract}{
-        \input abstract.input
-    }
     \block{Introduction}{
-      \begin{tikzfigure}
+      \input abstract.input
+      \begin{tikzfigure}[title]
+      \centering
+        \resizebox{0.25\textwidth}{!}{
+          {
+            \scalefont{0.5}
+            \tikzstyle{every node}=[node distance=1.5cm]
+            \tikzstyle{every commit}+=[color=yellow]
+            \input figures/git-model.tikz
+          }
+        }
       \end{tikzfigure}
+      \begin{tikzfigure}
+      \centering
+        \resizebox{0.25\textwidth}{!}{
+          {
+            \scalefont{0.5}
+            \tikzstyle{every node}=[node distance=1.5cm]
+            \input figures/git-model-filtering.tikz
+          }
+        }
+      \end{tikzfigure}
+      \begin{tikzfigure}[new tile]
+      \centering
+        \resizebox{0.25\textwidth}{!}{
+          {
+            \scalefont{0.5}
+            \tikzstyle{every node}=[node distance=1.5cm]
+            \input figures/git-model-final.tikz
+          }
+        }
+      \end{tikzfigure}
+    }
+    \block{test}{
+      \resizebox{0.25\textwidth}{!}{
+        {
+          \scalefont{2}
+          \input figures/components.tikz
+        }
+      }
     }
     \column{0.5}
     \block{new block}{sss}
-\end{columns}
+  \end{columns}
 \end{document}
