@@ -1,0 +1,92 @@
+% this style was created by Congbin Guo <cguo@vmware.com>
+\ProvidesPackage{beamerthemeRadio} 
+\mode<presentation>
+
+%%
+\definecolor{white}{rgb}{1, 1, 1}
+\definecolor{gray}{rgb}{100, 100, 100}
+
+\definecolor{dblue}{RGB}{0,67,89}
+\definecolor{blue}{RGB}{76,123,138}
+\definecolor{lblue}{RGB}{204,217,222}
+%%
+\setbeamercolor{headline}{fg=black,bg=white}
+\setbeamercolor{separation line}{bg=black}
+
+%%
+\setbeamercolor{title in headline}{fg=black}
+\setbeamercolor{author in headline}{fg=black}
+\setbeamercolor{institute in headline}{fg=black}
+
+\setbeamercolor{block title}{fg=white, bg=dblue}
+\setbeamercolor{block body}{fg=black, bg=lblue}
+
+%%
+\setbeamertemplate{headline}{  
+  \leavevmode
+
+  \begin{beamercolorbox}[wd=\paperwidth]{headline}
+    \begin{columns}[T]
+      \begin{column}{.6\paperwidth}
+        \vskip4ex
+        \raggedleft
+        \usebeamercolor{title in headline}{\color{fg}\textbf{\LARGE{\inserttitle}}\\[1ex]}
+        \usebeamercolor{author in headline}{\color{fg}\large{\insertauthor}\\[1ex]}
+        \usebeamercolor{institute in headline}{\color{fg}\large{\insertinstitute}\\[1ex]}     
+      \end{column}
+      \begin{column}{.4\paperwidth}
+      \centering
+        \vskip4ex
+        \includegraphics[width=\linewidth]{figures/radio-2015.jpg}
+      \end{column}
+    \end{columns}
+    \vskip2ex
+  \end{beamercolorbox}
+
+  \begin{beamercolorbox}[wd=\paperwidth]{separation line}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+}
+
+%%
+\setbeamertemplate{block begin}{
+  \vskip.75ex
+  \begin{beamerboxesrounded}[lower=block body, upper=block title,
+    shadow=true]{
+      \usebeamerfont*{block title}%
+      \insertblocktitle}
+  %\begin{beamercolorbox}[ht=3.5ex,dp=0.5ex,center,leftskip=-1em,colsep*=.75ex,
+    %shadow=true, rounded=true]{block title}%
+    %\usebeamerfont*{block title}%
+    %{\phantom{Gg}\insertblocktitle}% phantom because of baseline problem
+  %\end{beamercolorbox}%
+  %{\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5pt}}%
+  \usebeamerfont{block body}%
+  %\begin{beamercolorbox}[leftskip=1em,colsep*=.75ex,sep=0.5ex,vmode]{block body}%
+    %\ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.75ex}\vbox{}%
+
+  }
+  \setbeamertemplate{block end}{
+  \end{beamerboxesrounded}
+  %\end{beamercolorbox}
+}
+
+
+%%
+\setbeamertemplate{footline}{
+  \begin{beamercolorbox}[wd=\paperwidth]{separation line}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+  
+  \leavevmode%
+  \begin{beamercolorbox}[ht=4ex,leftskip=1em,rightskip=1em]{author in head/foot}%
+    \texttt{\inserttitle}
+    \hfill
+    \texttt{\insertauthor}
+    \vskip1ex
+  \end{beamercolorbox}
+  \vskip0pt%
+  \begin{beamercolorbox}[wd=\paperwidth]{separation line}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+}
