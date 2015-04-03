@@ -1,37 +1,11 @@
 \begin{tikzpicture}
-\tikzstyle{commit}=[rectangle, draw, rounded corners]
-\tikzstyle{tree}=[regular polygon, regular polygon sides=5, draw, thin]
-\tikzstyle{blob}=[circle, draw, thin]
+\input figures/git-model-base.style
 
 % mock tree/blob object
 \tikzstyle{mock_tree}=[regular polygon, regular polygon sides=5, draw, thin,
   fill=black!20]
 \tikzstyle{mock_blob}=[circle, draw, thin, fill=black!20]
 
-\tikzstyle{parent}=[-angle 60, draw, thick]
-\tikzstyle{edge from parent}=[->, draw]
-\tikzstyle{2obj}=[->, draw]
-% tree 1
-\node[commit](ci1){$C$}
-child{node[tree](tr1){$T_1$}
-  child{node[blob](b1_1){$B_1$}}
-  child{node[mock_tree](tr1_1){$T_m$}}
-};
-
-% tree 2
-\node[commit, right of=ci1, node distance=4cm](ci2){$C'$}
-child{node[tree](tr2){$T'_1$}
-  child{node[blob](b2_1){$B'_1$}}
-  child{node[mock_blob](b2_4){$B_m$}}
-  child{node[mock_tree](tr1_1){$T'_m$}}
-};
-
-\draw[parent](ci2) to (ci1);
-
-
-% HEAD
-\node[rectangle, right of=ci2](head){$H$};
-\draw[parent](head) to (ci2);
-
+\input figures/git-model-final.draw
 
 \end{tikzpicture}

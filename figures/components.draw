@@ -1,0 +1,43 @@
+\node[matrix, label={above:Server Repository}, column sep=2mm](repo)
+{
+  \node[object](obj1){loose\\object}; &
+  \node[object](obj2){loose\\object}; &
+  \node[pack, minimum width=45mm](obj4){pack file}; \\
+};
+
+\node[comp, below=1cm of repo.west, anchor=north west](revlist){\verb|git|\\\verb|rev-list --all --objects|};
+\node[filter, new, below of=revlist, node distance=1.5cm](f){filter};
+\node[view, new, anchor=west](v) at(revlist.west |- f){subdirs};
+\node[comp, below =3.5cm of revlist.east, anchor=east](gitpack){Git object packing};
+\node[box, fit= (gitpack)(repo)](server){};
+\node[vlabel, anchor=north] at (server.east){Server};
+
+% client side
+\node[pack, below= 3.2cm of gitpack](pack){pack file};
+\node[object, left = 2mm of pack.west, anchor=east](mockobj){mock\\objects};
+\node[object, right=2mm of pack.east, anchor=west](newobj){new\\commits};
+\node[comp, new, below =5mm of newobj](ci-ctor) {Commit\\Creator};
+\node (x) at (obj4.south-|newobj){};
+\path(newobj) to node[stream2, minimum height=8cm, pos=.48]{git push}(x);
+\node[comp, new, above=5mm of mockobj](mockc){Mock object\\builder};
+\node[comp, anchor=west, minimum width=45mm] (idx) at (mockobj.west |- ci-ctor) {Git \emph{Index}};
+\draw[olist] (idx) -- (ci-ctor);
+\draw[olist] (pack) -- (ci-ctor);
+\path(ci-ctor) to node[stream]{} (newobj);
+
+\node[fit=(mockc)(ci-ctor)](c){};
+\node[vlabel] at (c.east) {Client};
+\draw[thick](repo.south east) -- (repo.south west);
+
+\path(v) to node[consume, minimum width=3mm]{} (f);
+\draw[olist](obj1.south) -- (revlist);
+\draw[olist](obj2.south) -- (revlist);
+\draw[olist](obj4.south) -- (revlist);
+\draw[olist](revlist) -- (f);
+
+\draw[olist](f) to node{real obj\\list} (gitpack);
+\draw[olist](f) to [in=90, out=-140] node[near start]{mock obj\\list} (mockc);
+\path(gitpack) to node[stream2, minimum height=30mm, pos=.5, label={[above]45:git fetch}]{}
+    node [network, aspect=3, pos=.3]{Network} (pack);
+\path(mockc) to node[stream] {} (mockobj);
+%  \node[draw, single arrow, minimum height=3cm, align=left, text justified] at (0, 0){test\\1};

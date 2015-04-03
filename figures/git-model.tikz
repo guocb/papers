@@ -1,3 +1,4 @@
 \begin{tikzpicture}
-\input figures/git-model-base.input
+\input figures/git-model-base.style
+\input figures/git-model-base.draw
 \end{tikzpicture}

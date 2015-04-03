@@ -1,0 +1,5 @@
+\input figures/git-model-base.style
+\tikzset{commit/.append style={fill=red, drop shadow}}
+\tikzset{tree/.append style={fill=red, drop shadow}}
+\tikzset{blob/.append style={fill=red, drop shadow}}
+

@@ -1,0 +1,7 @@
+\begin{tikzpicture}
+  \input figures/git-model-base-poster.style
+  \tikzstyle{mock_tree}=[regular polygon, regular polygon sides=5, draw, thin,
+    fill=blue!20]
+  \tikzstyle{mock_blob}=[circle, draw, thin, fill=blue!20]
+  \input figures/git-model-final.draw
+\end{tikzpicture}

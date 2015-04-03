@@ -3,7 +3,7 @@
 \begin{tikzpicture}
   \tikzstyle{object} = [draw, rectangle, rounded corners, align=center, minimum
   height=1cm]
-  \tikzstyle{new} = [fill=black!20]
+  \tikzstyle{new} = [fill=blue!20]
   \tikzstyle{pack} = [object, minimum width=35mm]
   \tikzstyle{comp} = [draw, rectangle, minimum height=1cm, minimum width=0.6cm,
     very thick]

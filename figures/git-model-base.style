@@ -1,0 +1,6 @@
+\tikzstyle{commit}=[rectangle, draw, rounded corners]
+\tikzstyle{tree}=[regular polygon, regular polygon sides=5, draw, thin]
+\tikzstyle{blob}=[circle, draw, thin]
+\tikzstyle{parent}=[-angle 60, draw, thick]
+\tikzstyle{edge from parent}=[->, draw]
+\tikzstyle{2obj}=[->, draw]

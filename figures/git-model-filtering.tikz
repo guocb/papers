@@ -1,8 +1,6 @@
 \begin{tikzpicture}
-\input figures/git-model-base.input
-\begin{pgfonlayer}{background}
-  \node[ellipse, fill=black!20, fit=(tr1_1) (b1_2) (b1_3), xscale=0.75,
-  yshift=-0.5cm]{};
-  \node[ellipse, fill=black!20, fit=(tr2_1) (b2_2) (b2_4)]{};
-\end{pgfonlayer}
+  \tikzstyle{highlight}=[elipse, fill=black!20]
+  \input{figures/git-model-base.style}
+
+  \input{figures/git-model-base.draw}
 \end{tikzpicture}

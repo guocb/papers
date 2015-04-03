@@ -1,5 +1,6 @@
 % this style was created by Congbin Guo <cguo@vmware.com>
 \ProvidesPackage{beamerthemeRadio} 
+\RequirePackage{tikz}
 \mode<presentation>
 
 %%
@@ -7,19 +8,23 @@
 \definecolor{gray}{rgb}{100, 100, 100}
 
 \definecolor{dblue}{RGB}{0,67,89}
-\definecolor{blue}{RGB}{76,123,138}
-\definecolor{lblue}{RGB}{204,217,222}
+\definecolor{blue}{RGB}{18,245,216}
+\definecolor{lblue}{RGB}{157,212,229}
+
+\definecolor{green}{RGB}{74,141,49}
+\definecolor{dred}{RGB}{174,71,73}
+\definecolor{orange}{RGB}{249,168,0}
 %%
-\setbeamercolor{headline}{fg=black,bg=white}
-\setbeamercolor{separation line}{bg=black}
+\setbeamercolor{headline}{fg=dred,bg=white}
+\setbeamercolor{separation line}{bg=dred}
 
 %%
-\setbeamercolor{title in headline}{fg=black}
-\setbeamercolor{author in headline}{fg=black}
-\setbeamercolor{institute in headline}{fg=black}
+\setbeamercolor{title in headline}{fg=dred}
+\setbeamercolor{author in headline}{fg=dred}
+\setbeamercolor{institute in headline}{fg=dred}
 
-\setbeamercolor{block title}{fg=white, bg=dblue}
-\setbeamercolor{block body}{fg=black, bg=lblue}
+\setbeamercolor{block title}{fg=white, bg=white}
+\setbeamercolor{block body}{fg=green, bg=white}
 
 %%
 \setbeamertemplate{headline}{  
@@ -27,14 +32,14 @@
 
   \begin{beamercolorbox}[wd=\paperwidth]{headline}
     \begin{columns}[T]
-      \begin{column}{.6\paperwidth}
-        \vskip4ex
+      \begin{column}{.55\paperwidth}
+        \vskip8ex
         \raggedleft
-        \usebeamercolor{title in headline}{\color{fg}\textbf{\LARGE{\inserttitle}}\\[1ex]}
+        \usebeamercolor{title in headline}{\color{fg}\textbf{\LARGE{\huge\inserttitle}}\\[1ex]}
         \usebeamercolor{author in headline}{\color{fg}\large{\insertauthor}\\[1ex]}
         \usebeamercolor{institute in headline}{\color{fg}\large{\insertinstitute}\\[1ex]}     
       \end{column}
-      \begin{column}{.4\paperwidth}
+      \begin{column}{.42\paperwidth}
       \centering
         \vskip4ex
         \includegraphics[width=\linewidth]{figures/radio-2015.jpg}
@@ -42,35 +47,63 @@
     \end{columns}
     \vskip2ex
   \end{beamercolorbox}
-
   \begin{beamercolorbox}[wd=\paperwidth]{separation line}
     \rule{0pt}{3pt}
   \end{beamercolorbox}
 }
 
-%%
-\setbeamertemplate{block begin}{
-  \vskip.75ex
-  \begin{beamerboxesrounded}[lower=block body, upper=block title,
-    shadow=true]{
-      \usebeamerfont*{block title}%
-      \insertblocktitle}
-  %\begin{beamercolorbox}[ht=3.5ex,dp=0.5ex,center,leftskip=-1em,colsep*=.75ex,
-    %shadow=true, rounded=true]{block title}%
-    %\usebeamerfont*{block title}%
-    %{\phantom{Gg}\insertblocktitle}% phantom because of baseline problem
-  %\end{beamercolorbox}%
-  %{\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5pt}}%
-  \usebeamerfont{block body}%
-  %\begin{beamercolorbox}[leftskip=1em,colsep*=.75ex,sep=0.5ex,vmode]{block body}%
-    %\ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.75ex}\vbox{}%
 
-  }
-  \setbeamertemplate{block end}{
-  \end{beamerboxesrounded}
-  %\end{beamercolorbox}
+%%
+%\setbeamertemplate{block begin}{
+%  \vskip.75ex
+%  \begin{beamerboxesrounded}[lower=block body, upper=block title,
+%    shadow=true]{
+%      \usebeamerfont*{block title}%
+%      \insertblocktitle}
+%  %\begin{beamercolorbox}[ht=3.5ex,dp=0.5ex,center,leftskip=-1em,colsep*=.75ex,
+%    %shadow=true, rounded=true]{block title}%
+%    %\usebeamerfont*{block title}%
+%    %{\phantom{Gg}\insertblocktitle}% phantom because of baseline problem
+%  %\end{beamercolorbox}%
+%  %{\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5pt}}%
+%  \usebeamerfont{block body}%
+%  %\begin{beamercolorbox}[leftskip=1em,colsep*=.75ex,sep=0.5ex,vmode]{block body}%
+%    %\ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.75ex}\vbox{}%
+%
+%  }
+%  \setbeamertemplate{block end}{
+%  \end{beamerboxesrounded}
+%  %\end{beamercolorbox}
+%}
+
+%%
+\setbeamertemplate{block begin}
+{
+  \par\vskip\medskipamount
+  \begin{beamercolorbox}[colsep*=0ex,dp={2ex}]{block title}
+    %\vskip-0.25cm
+    %\usebeamerfont{block title}\large\insertblocktitle
+    \begin{flushleft}
+      %\vskip-1cm
+      \begin{tikzpicture}[remember picture,overlay]
+        \shade [left color=dred, right color=dred!20]
+        (0,1.2cm) rectangle (\textwidth, -0.5cm);
+      \end{tikzpicture}
+    \usebeamerfont{block title}\large\insertblocktitle
+    \end{flushleft}
+  \end{beamercolorbox}
+  {\parskip0pt\par}
+  \ifbeamercolorempty[bg]{block title}
+  {}
+  \usebeamerfont{block body}
+  \begin{beamercolorbox}[colsep*=0ex]{block body}
 }
 
+\setbeamertemplate{block end}
+{
+\end{beamercolorbox}
+\vskip\smallskipamount
+}
 
 %%
 \setbeamertemplate{footline}{

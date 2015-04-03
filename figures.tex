@@ -1,0 +1,29 @@
+\documentclass{article}
+
+\usepackage[pdftex]{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes, backgrounds, chains, decorations, calc, fit,
+    shadows, external}
+%\tikzexternalize
+%\tikzset{external/force remake}
+\usepackage{pgf}
+\usepackage{tikz-uml}
+\usepackage[english]{babel}
+
+\tikzset{
+  node distance=1.5cm,
+  every node/.style={align=center}
+}
+
+\begin{document}
+%\input figures/workspace.tikz
+\input{figures/git-model-poster.tikz}
+\input{figures/git-model-filtering-poster.tikz}
+\input{figures/git-model-final-poster.tikz}
+
+\input{figures/components-poster.tikz}
+
+\input{figures/git-proto-clone-seq.tikz}
+\input{figures/git-proto-ext-seq.tikz}
+\end{document}
+

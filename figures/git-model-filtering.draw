@@ -1,0 +1,5 @@
+\input figures/git-model-base.draw
+\begin{pgfonlayer}{background}
+  \node[highlight, fit=(tr1_1) (b1_2) (b1_3), xscale=0.75, yshift=-0.5cm]{};
+  \node[highlight, fit=(tr2_1) (b2_2) (b2_4)]{};
+\end{pgfonlayer}

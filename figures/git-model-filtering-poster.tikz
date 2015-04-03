@@ -1,0 +1,6 @@
+\begin{tikzpicture}
+  \tikzstyle{highlight}=[ellipse, fill=blue!20]
+  \input{figures/git-model-base-poster.style}
+
+  \input figures/git-model-filtering.draw
+\end{tikzpicture}

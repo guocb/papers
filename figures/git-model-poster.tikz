@@ -1,0 +1,5 @@
+\begin{tikzpicture}
+  \input figures/git-model-base-poster.style
+
+  \input figures/git-model-base.draw
+\end{tikzpicture}

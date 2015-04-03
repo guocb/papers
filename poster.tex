@@ -3,7 +3,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows, shapes, backgrounds, chains, decorations, calc, fit, shadows}
 \usepackage{pgf}
-\usepackage{tikzuml-v1.0b/tikz-uml}
+\usepackage{tikz-uml}
 \usepackage{scalefnt}
 \mode<presentation>{\usetheme{Radio}}
 
@@ -20,22 +20,45 @@
       \begin{block}{Abstract}
         \input abstract.input
       \end{block}
-      \begin{block}{Introduction}
-        \begin{figure}[htpb]
-          \tikzstyle{every node}=[node distance=15mm]
-          \centering
-          \resizebox{1\textwidth}{!}{
-            {
-              \scalefont{0.5}
-              \input figures/git-model-filtering.tikz
-            }
-          }
-        \end{figure}
+      \begin{block}{Git Transfer Protocol}
+        \begin{minipage}{\textwidth}
+        \begin{columns}
+          \begin{column}{.5\textwidth}
+            test
+          \end{column}
+          \begin{column}{.5\textwidth}
+            \begin{figure}[htpb]
+              \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-clone-seq.pdf}
+              }
+              \caption{Git transfer protocol}
+              \label{fig:git-proto}
+            \end{figure}
+            \begin{figure}[htpb]
+              \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-ext-seq.pdf}
+              }
+              \caption{Git transfer protocol extension}
+              \label{fig:git-proto-ext}
+            \end{figure}
+          \end{column}
+        \end{columns}
+      \end{minipage}
+      \end{block}
+      \begin{block}{Extended Git Transfer Protocol}
+      \end{block}
+
+      \begin{block}{Git Object Model and Mock Objects}
       \end{block}
     \end{column}
     \begin{column}{.5\linewidth}
-      \begin{block}{new block}
-        sss
+      \begin{block}{System Implementation}
+        \begin{itemize}
+          \item Server side
+          \item Client side
+        \end{itemize}
       \end{block}
     \end{column}
   \end{columns}
