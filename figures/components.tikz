@@ -19,10 +19,19 @@ height=1cm, minimum width=0.6cm, very thick]
 \tikzstyle{vlabel} = [anchor=south, rotate=-90]
 
 \ifdefined\PRETTY
-  \tikzset{object/.append style={top color=red!30, draw=red, drop shadow}}
+  \tikzset{object/.append style={top color=black!20, draw=black!30, drop
+      shadow, text=black!80}}
   \tikzset{new/.append style={top color=white, middle color=yellow!50!red,
-     drop shadow, draw=blue!30}}
-
+     drop shadow, draw=red!50, text=red!50!black}}
+  \tikzset{network/.append style={left color=gray, right color=white,
+      drop shadow, draw=black!60, text=blue!50!black}}
+  \tikzset{comp/.append style={drop shadow, fill=blue!20, draw=blue!10,
+      text=blue!40!black!50}}
+  \tikzset{stream/.append style={drop shadow, top color=green!30,
+      draw=green!50}}
+  \tikzset{consume/.append style={drop shadow, fill=yellow!50!red,
+      draw=yellow}}
+  \tikzset{vlabel/.append style={font=\large\scshape, text=black!60}}
 \fi
 
 \begin{tikzpicture}
@@ -53,7 +62,7 @@ height=1cm, minimum width=0.6cm, very thick]
   \draw[olist] (pack) -- (ci-ctor);
   \path(ci-ctor) to node[stream]{} (newobj);
 
-  \node[fit=(mockc)(ci-ctor)](c){};
+  \node[box, fit=(mockc)(ci-ctor)](c){};
   \node[vlabel] at (c.east) {Client};
   \draw[thick](repo.south east) -- (repo.south west);
 
