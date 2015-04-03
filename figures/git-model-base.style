@@ -1,0 +1,13 @@
+\tikzstyle{commit}=[rectangle, draw, rounded corners]
+\tikzstyle{tree}=[regular polygon, regular polygon sides=5, draw, thin]
+\tikzstyle{blob}=[circle, draw, thin]
+\tikzstyle{parent}=[-angle 60, draw, thick]
+\tikzstyle{edge from parent}=[->, draw]
+\tikzstyle{2obj}=[->, draw]
+
+% style for pretty pictures
+\ifdefined\PRETTY
+\tikzset{commit/.append style={draw=red, top color=red!50, drop shadow}}
+\tikzset{tree/.append style={draw=blue!50, top color=blue!50, drop shadow}}
+\tikzset{blob/.append style={draw=green!50!black, top color=green!50, drop shadow}}
+\fi

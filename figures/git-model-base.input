@@ -1,9 +1,4 @@
-\tikzstyle{commit}=[rectangle, draw, rounded corners]
-\tikzstyle{tree}=[regular polygon, regular polygon sides=5, draw, thin]
-\tikzstyle{blob}=[circle, draw, thin]
-\tikzstyle{parent}=[-angle 60, draw, thick]
-\tikzstyle{edge from parent}=[->, draw]
-\tikzstyle{2obj}=[->, draw]
+\input figures/git-model-base.style
 % tree 1
 \node[commit](ci1){$C$}
 child{node[tree](tr1){$T_1$}

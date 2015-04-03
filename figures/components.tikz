@@ -18,6 +18,13 @@ height=1cm, minimum width=0.6cm, very thick]
 \tikzstyle{stream2} = [stream] %, shape border rotate=180]
 \tikzstyle{vlabel} = [anchor=south, rotate=-90]
 
+\ifdefined\PRETTY
+  \tikzset{object/.append style={top color=red!30, draw=red, drop shadow}}
+  \tikzset{new/.append style={top color=white, middle color=yellow!50!red,
+     drop shadow, draw=blue!30}}
+
+\fi
+
 \begin{tikzpicture}
   \node[matrix, label={above:Server Repository}, column sep=2mm](repo)
   {
