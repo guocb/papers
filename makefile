@@ -15,7 +15,7 @@ clean:
 	$(LATEXMK) -CA
 
 $(TARGETS):%.pdf:%.tex
-	$(LATEXMK) -pdf --pdflatex="pdflatex -file-line-error -interaction=nonstopmode" -use-make $<
+	$(LATEXMK) -pdf --pdflatex="pdflatex -shell-escape -file-line-error -interaction=nonstopmode" -use-make $<
 
 $(PDF_FIGURES):%.pdf:%.eps
 	epspdf $<

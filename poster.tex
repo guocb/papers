@@ -20,22 +20,164 @@
       \begin{block}{Abstract}
         \input abstract.input
       \end{block}
-      \begin{block}{Introduction}
-        \begin{figure}[htpb]
-          \tikzstyle{every node}=[node distance=15mm]
-          \centering
-          \resizebox{1\textwidth}{!}{
-            {
-              \scalefont{0.5}
-              \input figures/git-model-filtering.tikz
-            }
-          }
-        \end{figure}
+      \begin{block}{Problems}
+To support subdirectories transferring between server and client needs to
+resolve below problems:
+\begin{itemize}
+  \item How does the client discovery the subdirectories, and negotiate with
+      the server that which of them to be transferred?
+
+  \item How does the server optimize the Git objects pack according to chosen
+      subdirectories?
+
+  \item How does the client operate with the partial Git objects store, and
+      furthermore ensure the newly created commits are as good as the ones
+      from fully Git objects store?
+\end{itemize}
+      \end{block}
+      \begin{block}{Git Transfer Protocol}
+        \begin{columns}[T]
+          \begin{column}{.5\textwidth}
+            Current Git transfer protocol:
+\begin{enumerate}
+  \item Client initiates the request by calling \verb|git-upload-pack| on
+    server.
+
+  \item Server advertises all current reference SHA1s ($H_s$) to the client.
+
+  \item Client sends a list of SHA1 of \verb|want| ($H_w$) and \verb|have|
+    ($H_h$), which indicates the start and end SHA1 of commit objects to be
+    transferred.
+    In case of cloning, the list of \verb|have| is skipped since the client has
+    nothing yet.
+
+  \item Server calculates all commit objects (and all other Git objects
+    associated) in range of $[H_w, H_h)$, then writes to a stream connected to
+    the client.
+\end{enumerate}
+
+Extend Git transfer protocol primitives:
+
+\begin{itemize}
+  \item \verb|dir| get a list of files and directories under \verb|path| of a
+    \verb|SHA1|, which equivalent to what command
+    \verb|git ls-tree SHA1 -- path| does.
+
+  \item \verb|include| specify files or subdirectories to be included in data
+    transferring.
+
+  \item \verb|exclude| specify files or subdirectories to be excluded from data
+    transferring.
+\end{itemize}
+          \end{column}
+          \begin{column}{.5\textwidth}
+            \begin{figure} \centering
+              \resizebox{1\textwidth}{!}{
+                \includegraphics{figures/git-proto-clone-seq.pdf}
+              }
+              \caption{Current Git Transfer Protocol}
+            \end{figure}
+            \begin{figure} \centering
+              \resizebox{1\textwidth}{!}{
+                \includegraphics{figures/git-proto-ext-seq.pdf}
+              }
+              \caption{Extended Git transfer protocol}
+            \end{figure}
+          \end{column}
+        \end{columns}
+\begin{figure}[htpb]
+  \centering
+  \begin{verbatim}
+  upload-request = dir-commands
+                   want-list
+                   have-list
+                   dir-requests
+                   compute-end
+
+  dir-commands = *dir-command
+
+  dir-command = PKT-LINE(dir SP obj-id SP path LF)
+
+  dir-requests = *(dir-request)
+
+  dir-request = include-line | exclude-line
+
+  include-line = PKT-LINE(include SP path LF)
+
+  exclude-line = PKT-LINE(exclude SP path LF)
+  \end{verbatim}
+  \caption{ABNF of extended Git transfer protocol}
+  \label{fig:git-proto-ext-ABNF}
+\end{figure}
+
       \end{block}
     \end{column}
     \begin{column}{.5\linewidth}
-      \begin{block}{new block}
-        sss
+      \begin{block}{Git Objects Packing Optimization}
+        \begin{columns}[T]
+          \begin{column}{.5\textwidth}
+\begin{itemize}
+  \item We keep tag objects because they have minor impact to repository size.
+
+  \item We keep commit objects because they are the backbone of the repository
+    and ensure the consistency.
+
+  \item We remove blob and tree objects in case the files or directories they
+    represent are not in the subdirectories specified.
+
+\end{itemize}
+          \end{column}
+          \begin{column}{.5\textwidth}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/git-model-base.pdf}
+                }
+              \end{figure}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/git-model-filtering.pdf}
+                }
+              \end{figure}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/git-model-final.pdf}
+                }
+              \end{figure}
+          \end{column}
+        \end{columns}
+      \end{block}
+      \begin{block}{System Impelementation}
+        \begin{columns}[T]
+          \begin{column}{.3\textwidth}
+\begin{itemize}
+  \item \emph{Subdirs} communicates with client to track which subdirectories
+    of the repository to be transferred.
+
+  \item \emph{Filter} gets the objects list from
+    \verb|git rev-list| command, and filters them by subdirectories specified.
+    The component has two outputs.
+    One is \emph{real object list} that passes to object-packing component.
+    Another is \emph{mock object list}, which is a subset of filtered out
+    objects, passes to \emph{mock object builder} on client.
+
+  \item \emph{Mock object builder} accepts the mock object list
+    from the filter, and then create mock objects accordingly.
+    It builds the mock objects in pack file format\cite{packformat} for better
+    performance.
+
+  \item \emph{Commit creator} creates new commits and ensures
+    the tree object of commit is complete as described in Section
+    \ref{sec:create-new-commit}.
+\end{itemize}
+          \end{column}
+          \begin{column}{.7\textwidth}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/components.pdf}
+                }
+              \end{figure}
+          \end{column}
+        \end{columns}
       \end{block}
     \end{column}
   \end{columns}
