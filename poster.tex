@@ -22,11 +22,9 @@
         \input abstract.input
       \end{block}
       \begin{block}{Problems}
-To support subdirectories transferring between server and client needs to
-resolve below problems:
 \begin{itemize}
     \justifying
-  \item How does the client discovery the subdirectories, and negotiate with
+  \item How does the client discover the subdirectories, and negotiate with
       the server that which of them to be transferred?
 
   \item How does the server optimize the Git objects pack according to chosen
@@ -37,23 +35,14 @@ resolve below problems:
       from fully Git objects store?
 \end{itemize}
       \end{block}
-      \begin{block}{Git Transfer Protocol}
-        \begin{wrapfigure}{r}{.5\textwidth}
-          \begin{minipage}{.5\textwidth}
-            \begin{figure} \centering
-              \resizebox{\textwidth}{!}{
-                \includegraphics{figures/git-proto-clone-seq.pdf}
-              }
-              \caption{Current Git Transfer Protocol}
-            \end{figure}
-            \begin{figure} \centering
-              \resizebox{\textwidth}{!}{
-                \includegraphics{figures/git-proto-ext-seq.pdf}
-              }
-              \caption{Extended Git transfer protocol}
-            \end{figure}
-          \end{minipage}
-        \end{wrapfigure}
+      \begin{block}{Git Object Model \& Transfer Protocol}
+        \begin{columns}[T]
+          \begin{column}{.5\textwidth}
+              \begin{figure}\centering
+                \resizebox{\textwidth}{!}{
+                  \includegraphics{figures/workspace}
+                }
+              \end{figure}
             Current Git transfer protocol:
 \begin{enumerate}
     \justifying
@@ -72,6 +61,34 @@ resolve below problems:
     associated) in range of $[H_w, H_h)$, then writes to a stream connected to
     the client.
 \end{enumerate}
+          \end{column}
+          \begin{column}{.5\textwidth}
+              \begin{figure}\centering
+                \resizebox{\textwidth}{!}{
+                  \includegraphics{figures/git-model-base}
+                }
+              \end{figure}
+            \begin{figure} \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-clone-seq.pdf}
+              }
+              \caption{Current Git Transfer Protocol}
+            \end{figure}
+          \end{column}
+        \end{columns}
+      \end{block}
+      \begin{block}{Extended Git Transfer Protocol}
+
+        \begin{wrapfigure}{r}{.5\textwidth}
+          \begin{minipage}{.5\textwidth}
+            \begin{figure} \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-ext-seq.pdf}
+              }
+              \caption{Extended Git transfer protocol}
+            \end{figure}
+          \end{minipage}
+        \end{wrapfigure}
 
 Extend Git transfer protocol primitives:
 
@@ -95,17 +112,11 @@ Extend Git transfer protocol primitives:
                    have-list
                    dir-requests
                    compute-end
-
   dir-commands = *dir-command
-
   dir-command = PKT-LINE(dir SP obj-id SP path LF)
-
   dir-requests = *(dir-request)
-
   dir-request = include-line | exclude-line
-
   include-line = PKT-LINE(include SP path LF)
-
   exclude-line = PKT-LINE(exclude SP path LF)
   \end{verbatim}
   \caption{ABNF of extended Git transfer protocol}
@@ -116,8 +127,6 @@ Extend Git transfer protocol primitives:
     \end{column}
     \begin{column}{.5\linewidth}
       \begin{block}{Git Objects Packing Optimization}
-        \begin{columns}[T]
-          \begin{column}{.5\textwidth}
 \begin{itemize}
     \justifying
   \item We keep tag objects because they have minor impact to repository size.
@@ -129,18 +138,15 @@ Extend Git transfer protocol primitives:
     represent are not in the subdirectories specified.
 
 \end{itemize}
-          \end{column}
+        \begin{columns}[T]
           \begin{column}{.5\textwidth}
-              \begin{figure} \centering
-                \resizebox{1\textwidth}{!}{
-                  \includegraphics{figures/git-model-base.pdf}
-                }
-              \end{figure}
               \begin{figure} \centering
                 \resizebox{1\textwidth}{!}{
                   \includegraphics{figures/git-model-filtering.pdf}
                 }
               \end{figure}
+          \end{column}
+          \begin{column}{.5\textwidth}
               \begin{figure} \centering
                 \resizebox{1\textwidth}{!}{
                   \includegraphics{figures/git-model-final.pdf}
@@ -150,15 +156,15 @@ Extend Git transfer protocol primitives:
         \end{columns}
       \end{block}
       \begin{block}{System Impelementation}
-            \begin{wrapfigure}{r}{.7\textwidth}
-              \begin{minipage}{.7\textwidth}
+            %\begin{wrapfigure}{r}{.7\textwidth}
+            %  \begin{minipage}{.7\textwidth}
               \begin{figure} \centering
                 \resizebox{1\textwidth}{!}{
                   \includegraphics{figures/components.pdf}
                 }
               \end{figure}
-            \end{minipage}
-          \end{wrapfigure}
+            %\end{minipage}
+          %\end{wrapfigure}
 \begin{itemize}
     \justifying
   \item \emph{Subdirs} communicates with client to track which subdirectories
