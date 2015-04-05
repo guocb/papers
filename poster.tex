@@ -10,7 +10,7 @@
 
 
 \title{Bidirectional Git Objects Transferring\\ by Subdirectories Specified}
-\author{Congbin Guo \& Eric Wang}
+\author{Congbin Guo \& Eric Wang \{cguo,wange\}@vmware.com}
 \institute{VMware Inc.}
 
 %\usetheme{Desert}
@@ -42,6 +42,8 @@
                 \resizebox{\textwidth}{!}{
                   \includegraphics{figures/workspace}
                 }
+                \caption{Snapshots of the example workspace}
+                \label{fig:workspace}
               \end{figure}
             Current Git transfer protocol:
 \begin{enumerate}
@@ -67,6 +69,8 @@
                 \resizebox{\textwidth}{!}{
                   \includegraphics{figures/git-model-base}
                 }
+                \caption{Git repository for an example workspace}
+                \label{fig:git-repo}
               \end{figure}
             \begin{figure} \centering
               \resizebox{\textwidth}{!}{
@@ -79,56 +83,47 @@
       \end{block}
       \begin{block}{Extended Git Transfer Protocol}
 
-        \begin{wrapfigure}{r}{.5\textwidth}
-          \begin{minipage}{.5\textwidth}
-            \begin{figure} \centering
-              \resizebox{\textwidth}{!}{
-                \includegraphics{figures/git-proto-ext-seq.pdf}
-              }
-              \caption{Extended Git transfer protocol}
-            \end{figure}
-          \end{minipage}
-        \end{wrapfigure}
-
-Extend Git transfer protocol primitives:
-
+        \begin{columns}[T]
+          \begin{column}{.5\textwidth}
 \begin{itemize}
     \justifying
+  \item Subdirectories Negotiation
+    \begin{enumerate}
   \item \verb|dir| get a list of files and directories under \verb|path| of a
-    \verb|SHA1|, which equivalent to what command
-    \verb|git ls-tree SHA1 -- path| does.
+    \verb|SHA1| (equivalent to \verb|git ls-tree SHA1 -- path|).
 
   \item \verb|include| specify files or subdirectories to be included in data
     transferring.
 
   \item \verb|exclude| specify files or subdirectories to be excluded from data
     transferring.
+      \end{enumerate}
 \end{itemize}
-\begin{figure}[htpb]
-  \centering
-  \begin{verbatim}
-  upload-request = dir-commands
-                   want-list
-                   have-list
-                   dir-requests
-                   compute-end
-  dir-commands = *dir-command
-  dir-command = PKT-LINE(dir SP obj-id SP path LF)
-  dir-requests = *(dir-request)
-  dir-request = include-line | exclude-line
-  include-line = PKT-LINE(include SP path LF)
-  exclude-line = PKT-LINE(exclude SP path LF)
-  \end{verbatim}
-  \caption{ABNF of extended Git transfer protocol}
-  \label{fig:git-proto-ext-ABNF}
-\end{figure}
+\end{column}
+        %\begin{wrapfigure}{r}{.5\textwidth}
+          %\begin{minipage}{.5\textwidth}
+          \begin{column}{.5\textwidth}
+            \begin{figure} \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-ext-seq.pdf}
+              }
+              \caption{Extended Git transfer protocol}
+            \end{figure}
+          %\end{minipage}
+        %\end{wrapfigure}
+          \end{column}
+        \end{columns}
 
       \end{block}
     \end{column}
     \begin{column}{.5\linewidth}
       \begin{block}{Git Objects Packing Optimization}
+        \begin{columns}[T]
+            \begin{column}{.5\textwidth}
 \begin{itemize}
     \justifying
+  \item We remove some objects to reduce the amount of objects to transfer:
+    \begin{enumerate}
   \item We keep tag objects because they have minor impact to repository size.
 
   \item We keep commit objects because they are the backbone of the repository
@@ -136,32 +131,52 @@ Extend Git transfer protocol primitives:
 
   \item We remove blob and tree objects in case the files or directories they
     represent are not in the subdirectories specified.
+\end{enumerate}
 
+
+\item \emph{Git Mock Object} a client side Git object file with \textbf{EMPTY}
+  content.
+
+\item Command line to create Git mock objects:
+\begin{verbatim}
+  # create an empty blob object
+  $ :> empty_file
+  $ git hash-object -w empty_file
+  e69de29...48c5391
+
+  # create an empty tree object
+  $ git mktree <<EOF
+  EOF
+  4b825dc...bee4904
+\end{verbatim}
 \end{itemize}
-        \begin{columns}[T]
+\end{column}
           \begin{column}{.5\textwidth}
               \begin{figure} \centering
                 \resizebox{1\textwidth}{!}{
                   \includegraphics{figures/git-model-filtering.pdf}
                 }
+                \caption{Objects can be excluded in the example repository}
+                \label{fig:find-obj-to-remove}
               \end{figure}
-          \end{column}
-          \begin{column}{.5\textwidth}
               \begin{figure} \centering
                 \resizebox{1\textwidth}{!}{
                   \includegraphics{figures/git-model-final.pdf}
                 }
+                \caption{Replacing Git objects with mock objects}
+                \label{fig:mock-objects}
               \end{figure}
-          \end{column}
-        \end{columns}
+            \end{column}
+\end{columns}
       \end{block}
       \begin{block}{System Impelementation}
             %\begin{wrapfigure}{r}{.7\textwidth}
-            %  \begin{minipage}{.7\textwidth}
+              %\begin{minipage}{.7\textwidth}
               \begin{figure} \centering
-                \resizebox{1\textwidth}{!}{
+                \resizebox{.85\textwidth}{!}{
                   \includegraphics{figures/components.pdf}
                 }
+                \caption{System level components}
               \end{figure}
             %\end{minipage}
           %\end{wrapfigure}
@@ -172,15 +187,9 @@ Extend Git transfer protocol primitives:
 
   \item \emph{Filter} gets the objects list from
     \verb|git rev-list| command, and filters them by subdirectories specified.
-    The component has two outputs.
-    One is \emph{real object list} that passes to object-packing component.
-    Another is \emph{mock object list}, which is a subset of filtered out
-    objects, passes to \emph{mock object builder} on client.
 
   \item \emph{Mock object builder} accepts the mock object list
     from the filter, and then create mock objects accordingly.
-    It builds the mock objects in pack file format for better
-    performance.
 
   \item \emph{Commit creator} creates new commits and ensures
     the tree object of commit is complete as described.
