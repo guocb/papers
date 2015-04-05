@@ -129,7 +129,7 @@ here.
 To support subdirectories transferring between server and client needs to
 resolve below problems:
 \begin{itemize}
-  \item How does the client discovery the subdirectories, and negotiate with
+  \item How does the client discover the subdirectories, and negotiate with
       the server that which of them to be transferred?
 
   \item How does the server optimize the Git objects pack according to chosen
@@ -386,7 +386,7 @@ That is what user exactly wants to get initially.
 
 
 \subsubsection{New Commits Creating}\label{sec:create-new-commit}
-Git staging area, or \emph{index}, which generally kept in \verb|.git/index|,
+Git staging area, or \emph{index}, which is generally kept in \verb|.git/index|,
 is the key data structure for Git to prepare a new commit.
 It contains a sorted list of all path names of current tree, each with
 permissions and the SHA1 of a blob object \cite{idx-format}.
