@@ -5,6 +5,7 @@
 \usepackage{pgf}
 \usepackage{tikzuml-v1.0b/tikz-uml}
 \usepackage{scalefnt}
+\usepackage{wrapfig}
 \mode<presentation>{\usetheme{Radio}}
 
 
@@ -14,7 +15,7 @@
 
 %\usetheme{Desert}
 \begin{document}
-\begin{frame}[t]
+\begin{frame}[t, fragile]
   \begin{columns}[t]
     \begin{column}{.5\linewidth}
       \begin{block}{Abstract}
@@ -24,6 +25,7 @@
 To support subdirectories transferring between server and client needs to
 resolve below problems:
 \begin{itemize}
+    \justifying
   \item How does the client discovery the subdirectories, and negotiate with
       the server that which of them to be transferred?
 
@@ -36,10 +38,25 @@ resolve below problems:
 \end{itemize}
       \end{block}
       \begin{block}{Git Transfer Protocol}
-        \begin{columns}[T]
-          \begin{column}{.5\textwidth}
+        \begin{wrapfigure}{r}{.5\textwidth}
+          \begin{minipage}{.5\textwidth}
+            \begin{figure} \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-clone-seq.pdf}
+              }
+              \caption{Current Git Transfer Protocol}
+            \end{figure}
+            \begin{figure} \centering
+              \resizebox{\textwidth}{!}{
+                \includegraphics{figures/git-proto-ext-seq.pdf}
+              }
+              \caption{Extended Git transfer protocol}
+            \end{figure}
+          \end{minipage}
+        \end{wrapfigure}
             Current Git transfer protocol:
 \begin{enumerate}
+    \justifying
   \item Client initiates the request by calling \verb|git-upload-pack| on
     server.
 
@@ -59,6 +76,7 @@ resolve below problems:
 Extend Git transfer protocol primitives:
 
 \begin{itemize}
+    \justifying
   \item \verb|dir| get a list of files and directories under \verb|path| of a
     \verb|SHA1|, which equivalent to what command
     \verb|git ls-tree SHA1 -- path| does.
@@ -69,22 +87,6 @@ Extend Git transfer protocol primitives:
   \item \verb|exclude| specify files or subdirectories to be excluded from data
     transferring.
 \end{itemize}
-          \end{column}
-          \begin{column}{.5\textwidth}
-            \begin{figure} \centering
-              \resizebox{1\textwidth}{!}{
-                \includegraphics{figures/git-proto-clone-seq.pdf}
-              }
-              \caption{Current Git Transfer Protocol}
-            \end{figure}
-            \begin{figure} \centering
-              \resizebox{1\textwidth}{!}{
-                \includegraphics{figures/git-proto-ext-seq.pdf}
-              }
-              \caption{Extended Git transfer protocol}
-            \end{figure}
-          \end{column}
-        \end{columns}
 \begin{figure}[htpb]
   \centering
   \begin{verbatim}
@@ -117,6 +119,7 @@ Extend Git transfer protocol primitives:
         \begin{columns}[T]
           \begin{column}{.5\textwidth}
 \begin{itemize}
+    \justifying
   \item We keep tag objects because they have minor impact to repository size.
 
   \item We keep commit objects because they are the backbone of the repository
@@ -147,9 +150,17 @@ Extend Git transfer protocol primitives:
         \end{columns}
       \end{block}
       \begin{block}{System Impelementation}
-        \begin{columns}[T]
-          \begin{column}{.3\textwidth}
+            \begin{wrapfigure}{r}{.7\textwidth}
+              \begin{minipage}{.7\textwidth}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/components.pdf}
+                }
+              \end{figure}
+            \end{minipage}
+          \end{wrapfigure}
 \begin{itemize}
+    \justifying
   \item \emph{Subdirs} communicates with client to track which subdirectories
     of the repository to be transferred.
 
@@ -162,22 +173,12 @@ Extend Git transfer protocol primitives:
 
   \item \emph{Mock object builder} accepts the mock object list
     from the filter, and then create mock objects accordingly.
-    It builds the mock objects in pack file format\cite{packformat} for better
+    It builds the mock objects in pack file format for better
     performance.
 
   \item \emph{Commit creator} creates new commits and ensures
-    the tree object of commit is complete as described in Section
-    \ref{sec:create-new-commit}.
+    the tree object of commit is complete as described.
 \end{itemize}
-          \end{column}
-          \begin{column}{.7\textwidth}
-              \begin{figure} \centering
-                \resizebox{1\textwidth}{!}{
-                  \includegraphics{figures/components.pdf}
-                }
-              \end{figure}
-          \end{column}
-        \end{columns}
       \end{block}
     \end{column}
   \end{columns}

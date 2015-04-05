@@ -1,6 +1,7 @@
 % this style was created by Congbin Guo <cguo@vmware.com>
 \ProvidesPackage{beamerthemeRadio} 
 \RequirePackage{tikz}
+\RequirePackage{ragged2e}
 \mode<presentation>
 
 %%
@@ -93,10 +94,9 @@
     \end{flushleft}
   \end{beamercolorbox}
   {\parskip0pt\par}
-  \ifbeamercolorempty[bg]{block title}
-  {}
   \usebeamerfont{block body}
   \begin{beamercolorbox}[colsep*=0ex]{block body}
+    \justifying
 }
 
 \setbeamertemplate{block end}

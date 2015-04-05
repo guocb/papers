@@ -23,7 +23,7 @@ height=1cm, minimum width=0.6cm, very thick]
       shadow, text=black!80}}
   \tikzset{new/.append style={top color=white, middle color=yellow!50!red,
      drop shadow, draw=red!50, text=red!50!black}}
-  \tikzset{network/.append style={left color=gray, right color=white,
+  \tikzset{network/.append style={bottom color=gray, top color=white,
       drop shadow, draw=black!60, text=blue!50!black}}
   \tikzset{comp/.append style={drop shadow, fill=blue!20, draw=blue!10,
       text=blue!40!black!50}}

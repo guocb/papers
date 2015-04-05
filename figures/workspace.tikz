@@ -1,29 +1,60 @@
 \begin{tikzpicture}[every node/.style={anchor=north west}, every path/.style={->}]
-% snapshot 1
-\node (w) {\verb|workspace/|};
-\node (f1) at (w.south){\verb|file1|};
-\node (d1) at (f1.south west){\verb|dir1/|};
-\node (f2) at (d1.south) {\verb|file2|};
-\node (f3) at (f2.south west) {\verb|file3|};
+\tikzstyle{dir}=[]
+\tikzstyle{file}=[]
+\tikzstyle{changed_file}=[]
+\tikzstyle{conn}=[]
 
-\draw (w.-160) |- (f1.west);
-\draw (w.-160) |- (d1.west);
-\draw (d1.-145) |- (f2.west);
-\draw (d1.-145) |- (f3.west);
+
+\ifdefined\PRETTY
+  \newcommand{\FolderOpen}[1][\ht\strutbox]{%
+      \includegraphics[height=#1]{figures/folderOpen}\ %
+  }
+  \newcommand{\FileIcon}[1][\ht\strutbox]{%
+      \includegraphics[height=#1]{figures/file}\ %
+  }
+  \tikzset{
+    %dir/.append style={fill=yellow!20, rectangle},
+    changed_file/.append style={rectangle, inner color=red!50!yellow},
+    conn/.style={shadowed, very thick, draw=black!80},
+    shadowed/.style={preaction={transform canvas={shift={(2pt,-1pt)}},
+      draw=black!20, very thick}},
+  }
+\else
+  \newcommand{\FolderOpen}[1][.8\ht\strutbox]{}
+  \newcommand{\FileIcon}[1][.8\ht\strutbox]{}
+\fi
+
+% snapshot 1
+\node [dir](w) {\FolderOpen\verb|workspace/|};
+\node [file](f1) at (w.south){\FileIcon \verb|file1|};
+\node [dir](d1) at (f1.south west){\FolderOpen \verb|dir1/|};
+\node [file](f2) at (d1.south) {\FileIcon \verb|file2|};
+\node [file](f3) at (f2.south west) {\FileIcon \verb|file3|};
+
+\draw [conn](w.-160) |- (d1.west);
+\draw [conn] (w.-160) |- (f1.west);
+\draw [conn](d1.-145) |- (f3.west);
+\draw [conn](d1.-145) |- (f2.west);
 
 % snapshot 2
-\node (w2) at (3,0) {\verb|workspace/|};
-\node (f12) at (w2.south){\verb|file1'|};
-\node (f4) at (f12.south west) {\verb|file4|};
-\node (d12) at (f4.south west){\verb|dir1/|};
-\node (f22) at (d12.south) {\verb|file2'|};
-\node (f32) at (f22.south west) {\verb|file3|};
+\ifdefined\PRETTY
+  \node [minimum height=5mm, single arrow, right color=blue!30,
+  left color=white, single arrow head indent=1ex](arrow) at (f2.east|-d1.east){};
+  \node [dir](w2) at (4,0) {\FolderOpen \verb|workspace/|};
+\else
+  \node [dir](w2) at (3,0) {\FolderOpen \verb|workspace/|};
+\fi
+\node [changed_file](f12) at (w2.south){\FileIcon \verb|file1'|};
+\node [changed_file](f4) at (f12.south west) {\FileIcon\verb|file4|};
+\node [dir](d12) at (f4.south west){\FolderOpen \verb|dir1/|};
+\node [changed_file](f22) at (d12.south) {\FileIcon \verb|file2'|};
+\node [file](f32) at (f22.south west) {\FileIcon \verb|file3|};
 
-\draw (w2.-160) |- (f12.west);
-\draw (w2.-160) |- (f4.west);
-\draw (w2.-160) |- (d12.west);
-\draw (d12.-145) |- (f22.west);
-\draw (d12.-145) |- (f32.west);
+\draw[conn] (w2.-160) |- (d12.west);
+\draw[conn] (w2.-160) |- (f4.west);
+\draw[conn] (w2.-160) |- (f12.west);
+\draw[conn] (d12.-145) |- (f32.west);
+\draw[conn] (d12.-145) |- (f22.west);
 
 \end{tikzpicture}
 
