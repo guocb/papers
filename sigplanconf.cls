@@ -1032,8 +1032,8 @@
   \else
     \twocolumn[\@maketitle]%
   \fi
-  \@placetitlenotes
-  \if \@copyrightwanted \@copyrightspace \fi}
+  \@placetitlenotes}
+  %\if \@copyrightwanted \@copyrightspace \fi}
 
 \def \@maketitle {%
   \begin{center}
