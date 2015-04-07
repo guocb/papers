@@ -1,6 +1,6 @@
 % the problem
-The lack of subdirectories transferring of a Git repository (e.g. cloning,
-fetching, or pushing) consumes lots of time and network bandwidth.
+The lack of subdirectory granularity selectivity during Git transfer (e.g.
+cloning, fetching, or pushing) consumes lots of time and network bandwidth.
 % why interesting
 This limitation decreases users experience and reduces development efficiency
 against
