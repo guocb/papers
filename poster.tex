@@ -6,7 +6,6 @@
 \usepackage{pgf}
 \usepackage{tikzuml-v1.0b/tikz-uml}
 \usepackage{scalefnt}
-\usepackage{wrapfig}
 \mode<presentation>{\usetheme{Radio}}
 
 
@@ -14,11 +13,10 @@
 \author{Congbin Guo \& Eric Wang \{cguo,wange\}@vmware.com}
 \institute{VMware Inc.}
 
-%\usetheme{Desert}
 \begin{document}
 \begin{frame}[t, fragile]
   \begin{columns}[t]
-    \begin{column}{.5\linewidth}
+    \begin{column}{.49\linewidth}
       \begin{block}{Abstract}
         \input abstract.input
       \end{block}
@@ -44,7 +42,6 @@
                   \includegraphics{figures/workspace}
                 }
                 \caption{Snapshots of the example workspace}
-                \label{fig:workspace}
               \end{figure}
             Current Git transfer protocol:
 \begin{enumerate}
@@ -71,7 +68,6 @@
                   \includegraphics{figures/git-model-base}
                 }
                 \caption{Git repository for an example workspace}
-                \label{fig:git-repo}
               \end{figure}
             \begin{figure} \centering
               \resizebox{\textwidth}{!}{
@@ -100,9 +96,13 @@
     transferring.
       \end{enumerate}
 \end{itemize}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/git-model-filtering.pdf}
+                }
+                \caption{Objects excluded in the repository}
+              \end{figure}
 \end{column}
-        %\begin{wrapfigure}{r}{.5\textwidth}
-          %\begin{minipage}{.5\textwidth}
           \begin{column}{.5\textwidth}
             \begin{figure} \centering
               \resizebox{\textwidth}{!}{
@@ -110,39 +110,69 @@
               }
               \caption{Extended Git transfer protocol}
             \end{figure}
-          %\end{minipage}
-        %\end{wrapfigure}
+            \begin{itemize}
+              \item Git objects packing optimization
+    \begin{enumerate}
+  \item We keep tag and commit objects.
+
+  \item We remove blob and tree objects in case the files or directories they
+    represent are not in the subdirectories specified.
+\end{enumerate}
+            \end{itemize}
           \end{column}
         \end{columns}
 
       \end{block}
     \end{column}
-    \begin{column}{.5\linewidth}
-      \begin{block}{Git Objects Packing Optimization}
+    \begin{column}{.49\linewidth}
+      \begin{block}{Git Client Side Extensions}
         \begin{columns}[T]
             \begin{column}{.5\textwidth}
 \begin{itemize}
-    \justifying
-  \item We remove some objects to reduce the amount of objects to transfer:
-    \begin{enumerate}
-  \item We keep tag objects because they have minor impact to repository size.
+  \justifying
+  \item Objects receiving
+    \begin{itemize}
+      \item \emph{Git Mock Object} is a client side Git object file with
+        \textbf{EMPTY} content.
+    \end{itemize}
+  \item Worksapce checking-out
+    \begin{itemize}
+    \item We use \emph{Git sparse checkout} to checkout specified
+      subdirectories from repository into workspace.
+    \end{itemize}
+  \item New commits creating
+\begin{enumerate}
+  \item Get the tree object content of current version $T_h$, i.e. \\
+        \verb|git cat-file -p HEAD^{tree}|.
 
-  \item We keep commit objects because they are the backbone of the repository
-    and ensure the consistency.
+  \item Get staging files path and SHA1 information $T_t$ from Git index.
 
-  \item We remove blob and tree objects in case the files or directories they
-    represent are not in the subdirectories specified.
+  \item Combine the content of $T_h$ and $T_t$ together; and then construct a
+        new tree object $T$ by command \verb|git mktree|.
+
+  \item Run command \verb|git commit-tree |$T$ to create a new commit object
+        $C$.
+
+  \item Update current branch tip to pointed to $C$ by command
+    \verb|git update-ref|.
 \end{enumerate}
+\end{itemize}
 
-
-\item \emph{Git Mock Object} a client side Git object file with \textbf{EMPTY}
-  content.
-
-\item Command line to create Git mock objects:
+\end{column}
+          \begin{column}{.5\textwidth}
+              \begin{figure} \centering
+                \resizebox{1\textwidth}{!}{
+                  \includegraphics{figures/git-model-final.pdf}
+                }
+                \caption{Replacing Git objects with mock objects}
+              \end{figure}
+              \begin{itemize}
+                \item Commands to create Git mock objects:
+              \end{itemize}
 \begin{verbatim}
   # create an empty blob object
-  $ :> empty_file
-  $ git hash-object -w empty_file
+  $ :> emptyfile
+  $ git hash-object -w emptyfile
   e69de29...48c5391
 
   # create an empty tree object
@@ -150,37 +180,16 @@
   EOF
   4b825dc...bee4904
 \end{verbatim}
-\end{itemize}
-\end{column}
-          \begin{column}{.5\textwidth}
-              \begin{figure} \centering
-                \resizebox{1\textwidth}{!}{
-                  \includegraphics{figures/git-model-filtering.pdf}
-                }
-                \caption{Objects can be excluded in the example repository}
-                \label{fig:find-obj-to-remove}
-              \end{figure}
-              \begin{figure} \centering
-                \resizebox{1\textwidth}{!}{
-                  \includegraphics{figures/git-model-final.pdf}
-                }
-                \caption{Replacing Git objects with mock objects}
-                \label{fig:mock-objects}
-              \end{figure}
             \end{column}
 \end{columns}
       \end{block}
-      \begin{block}{System Impelementation}
-            %\begin{wrapfigure}{r}{.7\textwidth}
-              %\begin{minipage}{.7\textwidth}
+      \begin{block}{System Implementation}
               \begin{figure} \centering
                 \resizebox{.85\textwidth}{!}{
                   \includegraphics{figures/components.pdf}
                 }
                 \caption{System level components}
               \end{figure}
-            %\end{minipage}
-          %\end{wrapfigure}
 \begin{itemize}
     \justifying
   \item \emph{Subdirs} communicates with client to track which subdirectories
