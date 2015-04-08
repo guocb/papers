@@ -18,7 +18,7 @@
 \colorlet{dgreen}{green!50!black}
 \definecolor{orange}{RGB}{249,168,0}
 %%
-\setbeamercolor{headline}{fg=dred,bg=white}
+\setbeamercolor{headline}{fg=dred,bg=}
 \setbeamercolor{separation line}{bg=dgreen}
 
 %%
@@ -28,11 +28,23 @@
 \setbeamercolor{author in head/foot}{fg=white, bg=dblue}
 
 \setbeamercolor{block title}{fg=white, bg=white}
-\setbeamercolor{block body}{fg=dblue, bg=white}
+\setbeamercolor{block body}{fg=dblue, bg=}
 \beamertemplatenavigationsymbolsempty
 
+\usebackgroundtemplate{
+  \begin{tikzpicture}
+    \shade[top color = dblue!60, bottom color = white]
+    (current page.north west) rectangle (\paperwidth,.9\paperheight);
+    \shade [bottom color = dblue!60, top color = white]
+    (\paperwidth,.05\paperheight) rectangle (current page.south west);
+  \end{tikzpicture}
+}
 %%
 \setbeamertemplate{headline}{  
+  %\begin{tikzpicture}[remember picture,overlay]
+  %  \shade [top color=dblue!80!black, bottom color=white, opacity=.3](current page.north west)
+  %  rectangle(\paperwidth, \paperheight);
+  %\end{tikzpicture}
   \leavevmode
 
   \begin{beamercolorbox}[wd=\paperwidth]{headline}
@@ -55,10 +67,6 @@
   \begin{beamercolorbox}[wd=\paperwidth]{separation line}
     \rule{0pt}{3pt}
   \end{beamercolorbox}
-  \begin{tikzpicture}[remember picture,overlay]
-    \shade [top color=dblue!80!black, bottom color=white, opacity=.3](current page.north west)
-    rectangle(\paperwidth, 0cm);
-  \end{tikzpicture}
 }
 
 
@@ -130,8 +138,8 @@
   \begin{beamercolorbox}[wd=\paperwidth]{separation line}
     \rule{0pt}{3pt}
   \end{beamercolorbox}
-  \begin{tikzpicture}[remember picture,overlay]
-    \shade [bottom color=dblue!80!black, top color=white, opacity=.3](
-    current page.south west) rectangle(\paperwidth, 10cm);
-  \end{tikzpicture}
+  %\begin{tikzpicture}[remember picture,overlay]
+    %\shade [bottom color=dblue!80!black, top color=white, opacity=.3](
+    %current page.south west) rectangle(\paperwidth, 10cm);
+  %\end{tikzpicture}
 }
