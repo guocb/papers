@@ -11,7 +11,7 @@
 
 \title{Bidirectional Git Objects Transferring\\ by Subdirectories Specified}
 \author{Congbin Guo \& Eric Wang \{cguo,wange\}@vmware.com}
-\institute{VMware Inc.}
+\institute{SCM Team, VMware Inc.}
 \logo{\includegraphics[scale=4]{figures/VMwareLogo}}
 
 \begin{document}
@@ -24,15 +24,15 @@
       \begin{block}{Problems}
 \begin{itemize}
     \justifying
-  \item How does the client discover the subdirectories, and negotiate with
-      the server that which of them to be transferred?
+  \item How does the client discover the subdirectories and negotiate with
+      the server which to be transferred?
 
-  \item How does the server optimize the Git objects pack according to chosen
-      subdirectories?
+  \item How does the server optimize the Git object pack file according to the
+      selected subdirectories?
 
-  \item How does the client operate with the partial Git objects store, and
-      furthermore ensure the newly created commits are as good as the ones
-      from fully Git objects store?
+  \item How does the client operate with the partial Git object store and
+      ensure the newly created commits are equivalant as the ones
+      from the complete Git object store?
 \end{itemize}
       \end{block}
       \begin{block}{Git Object Model \& Transfer Protocol}
@@ -131,17 +131,17 @@
             \begin{column}{.5\textwidth}
 \begin{itemize}
   \justifying
-  \item Objects receiving
+  \item Receiving Objects
     \begin{itemize}
       \item \emph{Git Mock Object} is a client side Git object file with
         \textbf{EMPTY} content.
     \end{itemize}
-  \item Workspace checking-out
+  \item Checking out workspace
     \begin{itemize}
     \item We use \emph{Git sparse checkout} to checkout specified
       subdirectories from repository into workspace.
     \end{itemize}
-  \item New commits creating
+  \item Creating new commits
 \begin{enumerate}
   \item Get the tree object content of current version $T_h$, i.e. \\
         \verb|git cat-file -p HEAD^{tree}|.
