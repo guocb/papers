@@ -126,37 +126,37 @@ Because it is fully reused in our solution, we do not describe it in detail
 here.
 
 \section{The problem}
-To support subdirectories transferring between server and client needs to
+To support subdirectory transfer between server and client needs to
 resolve below problems:
 \begin{itemize}
-  \item How does the client discover the subdirectories, and negotiate with
-      the server that which of them to be transferred?
+  \item How does the client discover the subdirectories and negotiate with
+      the server which of the should be transferred?
 
-  \item How does the server optimize the Git objects pack according to chosen
-      subdirectories?
+  \item How does the server optimize the Git object pack file according to the
+      selected subdirectories?
 
-  \item How does the client operate with the partial Git objects store, and
-      furthermore ensure the newly created commits are as good as the ones
-      from fully Git objects store?
+  \item How does the client operate with the partial Git object store and
+      ensure the newly created commits are identical as the ones
+      from the complete Git object store?
 \end{itemize}
-%)
+%identical )
 
 \section{Solution}
 Our solution includes both server side and client side changes.
 \subsection{Server side}
-We add two more steps in server side, one is negotiating subdirectories,
-and another is excluding uninterested objects from packing.
-\subsubsection{Subdirectories Negotiation}
-Client can send all subdirectories interested and excluded when it has enough
+We add two additional server side steps: negotiating subdirectories,
+followed by excluding unnecessary objects from packing.
+\subsubsection{Negotiating Subdirectories}
+Client can send all subdirectories desired and excluded when it has enough
 information.
 Otherwise, the negotiation is necessary.
-The subdirectories negotiation is an interactive process because the client may
+The subdirectory negotiation is an interactive process because the client may
 know nothing about the directories, especially in cloning.
 
-We add an extra step in the standard transfer protocol to allow subdirectories
+We add an extra step in the standard transfer protocol to allow subdirectory
 negotiation between client and server.
-The step is initiated by client, so it is transparent for common Git client,
-which can ensure the server compatibility for all kinds of client.
+The step is initiated by clients, so it is transparent for common Git clients,
+which can ensure the server compatibility for all kinds of clients.
 \begin{figure}[htpb]
   \centering
   \input{figures/git-proto-ext-seq.tikz}
@@ -165,13 +165,13 @@ which can ensure the server compatibility for all kinds of client.
 \end{figure}
 
 By following the style in \cite{tran-protocol}, we define the extended
-protocol command in ABNF as well, which shown in Figure
+protocol command in ABNF as well. This is shown in Figure
 \ref{fig:git-proto-ext-ABNF}.
 The extension includes three primitive commands.
 \begin{itemize}
   \item \verb|dir| get a list of files and directories under \verb|path| of a
-    \verb|SHA1|, which equivalent to what command
-    \verb|git ls-tree SHA1 -- path| does.
+    \verb|SHA1|, which is equivalent to the 
+    \verb|git ls-tree SHA1 -- path| command.
 
   \item \verb|include| specify files or subdirectories to be included in data
     transferring.
@@ -207,7 +207,7 @@ The extension includes three primitive commands.
 
 We define the server response of \verb|dir| command in ABNF as well, as shown
 in Figure \ref{fig:server-response-ABNF}.
-It follows the output format of command \verb|git ls-tree|, which we reuse to
+It has the same output format as the \verb|git ls-tree| command, which we reuse to
 help create the response.
 \begin{figure}[htpb]
   \centering
@@ -226,9 +226,9 @@ help create the response.
   \label{fig:server-response-ABNF}
 \end{figure}
 
-In the example repository shown in Figure \ref{fig:git-repo}, supposing the
-client only want \verb|file1|, the subdirectories discovery and negotiation may
-look like what shown in Figure \ref{fig:c/s-comm}.
+In the example repository shown in Figure \ref{fig:git-repo}, suppose the
+client only wants \verb|file1|, the subdirectory discovery and negotiation may
+then look as shown in Figure \ref{fig:c/s-comm}.
 All lines asterisked are the extension proposed.
 
 \begin{figure}[htpb]
@@ -260,17 +260,17 @@ All lines asterisked are the extension proposed.
   \label{fig:c/s-comm}
 \end{figure}
 
-\subsubsection{Objects Packing Optimization}
-In standard Git protocol, the object packing can be regards as a piped command,
+\subsubsection{Optimizing Git Objects Packing}
+In the standard Git protocol, object packing can be regarded as a piped command,
 i.e.
 \begin{verbatim}
 git-rev-list|git-pack-objects
 \end{verbatim}
-That is, get a list of all commits (and its associated objects) first, and then
+That is, get a list of all commits (and their associated objects) first, and then
 pack them.
 
-To save time and network bandwidth to transfer, we reduce the amount of objects
-by finding out ones can be removed.
+To save time and network bandwidth during transfer, we reduce the amount of objects
+by finding out which ones can be removed.
 \begin{itemize}
   \item We keep tag objects because they have minor impact to repository size.
 
@@ -284,7 +284,7 @@ by finding out ones can be removed.
 
 In the example repository shown in Figure \ref{fig:git-repo}, still supposing
 the client only wants \verb|file1| (represented as $B_1$ and $B'_1$), the
-candidate objects for excluding are tree objects ($T_1$ and $T'_1$), and blob
+candidate objects for exclusion are tree objects ($T_1$ and $T'_1$), and blob
 objects ($B_2$, $B'_2$, $B_3$ and $B_4$), as highlighted in Figure
 \ref{fig:find-obj-to-remove}.
 After that, we have a reduced object list, and then pass it to
@@ -298,26 +298,26 @@ After that, we have a reduced object list, and then pass it to
 
 
 \subsection{Client side}
-\subsubsection{Packed Objects Receiving}
+\subsubsection{Receiving Packed Objects}
 The client cannot handle the pack stream transferred from server directly
 due to the excluded objects.
-We create placeholder files in client for the excluded ones.
+We create placeholder files in the client for the excluded objects.
 We call those placeholders \emph{Git mock objects}.
 The mock objects have same name, i.e. the SHA1 string of the object, as the
 original objects.
-But the content of mock objects is empty.
+However, the content of mock objects is empty.
 
-The reason why we can use empty file as the placeholder is because that Git
+We can use empty files as a placeholder because Git
 performs consistency checks based on SHA1 values got from the object file name,
-rather than re-calculate it again from the content.
-In other words, Git only cares about the object file name instead of the
+rather than recalculating it again from the content.
+In other words, Git only cares about the object file name rather than the
 content.
 
-Figure \ref{fig:cmd-create-mock} shows one way to create empty blob and tree
+Figure \ref{fig:cmd-create-mock} shows one way to create the empty blob and the tree
 object by command line.
-The object file prefixed with \verb|e69de29| and \verb|4b825dc| are the mock
+The object files prefixed with \verb|e69de29| and \verb|4b825dc| are the mock
 blob and tree object we want.
-They can play the placeholder to any same type Git object by just renaming it
+They can act as the placeholder to any same type Git object by just renaming it
 to target SHA1.
 The benefits of using those mock objects are:
 \begin{enumerate}
@@ -327,7 +327,7 @@ The benefits of using those mock objects are:
   \item The cost to create them is very low because of the small file size.
 
   \item An empty tree object dereferences all associated objects;
-    so eliminates the need for placeholders for all sub-trees and blobs.
+    this eliminates the need for placeholders for all sub-trees and blobs.
 \end{enumerate}
 
 
@@ -367,45 +367,45 @@ objects.
 
 With those mock objects, Git is happy with the data transferred from server.
 
-\subsubsection{Workspace Checking-out}
+\subsubsection{Checking-out Workspace}
 Like normal Git objects, Git can also check out the mock objects into workspace.
-The checked-out mock blob objects is an empty file.
-And the checked-out mock tree object is nothing.
+A checked-out mock blob object is an empty file.
+A checked-out mock tree object is nothing.
 
-The checking out of those mock objects can make Git regards the current
-workspace is dirty.
-That is because Git recalculates the SHA1 value of working files and compare
+Checking out of the mock objects makes Git treats the current
+workspace as dirty.
+This is due to the fact that Git recalculates the SHA1 value of working files and compares
 what recorded in Git index.
 Obviously, they are different.
 
 We use \emph{Git sparse checkout} \cite{sparseco} to avoid that, which only
 checkout specified subdirectories from repository into workspace.
-Here we can reuse the result of subdirectories negotiation done before.
+Here we can reuse the result of subdirectories negotiated before.
 That is what user exactly wants to get initially.
 
 
 
-\subsubsection{New Commits Creating}\label{sec:create-new-commit}
-Git staging area, or \emph{index}, which is generally kept in \verb|.git/index|,
+\subsubsection{Creating New Commits}\label{sec:create-new-commit}
+The Git staging area, or \emph{index}, which is generally kept in \verb|.git/index|,
 is the key data structure for Git to prepare a new commit.
-It contains a sorted list of all path names of current tree, each with
+It contains a sorted list of all path names of the current tree, along with
 permissions and the SHA1 of a blob object \cite{idx-format}.
-Git uses the data stored in index to create a tree object; then creates a
+Git uses the data stored in the index to create a tree object, then creates a
 commit with that tree.
-Even for Git sparse checking out, in which only a part of files be checked
-out, the index still contains a full list of all files for committing.
+For a Git sparse check out, in which only a subset of files will be checked
+out, the index still contains the full list of all files for commit.
 
-In our case, Git index loads nothing by reading mock tree objects
-since they are empty.
-This results in partial Git index which cannot work properly when creating new
-commits, because Git index regards all directories represented by mock tree
+In our case, the Git index loads nothing by reading mock tree objects
+as they are empty.
+This results in a partial Git index which cannot work properly when creating new
+commits, as the Git index regards all directories represented by mock tree
 objects as removed.
 
 It makes no sense for users to modify files out of the scope of
 subdirectories negotiated in our solution.
 Based on that, we extract missing blob and tree objects information from the
-most recent commit; combine it with data stored in the Git index to form a
-complete tree object; and then rewrite the commit to point to the complete tree
+most recent commit, combine it with data stored in the Git index to form a
+complete tree object, and then rewrite the commit to point to the complete tree
 object.
 We do the rewriting just after every new commit created.
 Below is the more detail steps:
@@ -430,20 +430,20 @@ Below is the more detail steps:
 \subsection{System Implementation}
 We developed a prototype to prove the solution works.
 Figure \ref{fig:components} shows the system level components interaction.
-The key components for the proposed solution includes:
+The key components for the proposed solution include:
 \begin{itemize}
   \item \emph{Subdirs} communicates with client to track which subdirectories
     of the repository to be transferred.
 
-  \item \emph{Filter} gets the objects list from
-    \verb|git rev-list| command, and filters them by subdirectories specified.
+  \item \emph{Filter} gets the object list from
+    \verb|git rev-list| command, and filters the list by subdirectories specified.
     The component has two outputs.
-    One is \emph{real object list} that passes to object-packing component.
-    Another is \emph{mock object list}, which is a subset of filtered out
-    objects, passes to \emph{mock object builder} on client.
+    One is \emph{real object list} that is passed to object-packing component.
+    The other is \emph{mock object list}, which is a subset of filtered
+    objects, which is passed to \emph{mock object builder} on client.
 
   \item \emph{Mock object builder} accepts the mock object list
-    from the filter, and then create mock objects accordingly.
+    from the filter, and then creates mock objects accordingly.
     It builds the mock objects in pack file format\cite{packformat} for better
     performance.
 
@@ -462,7 +462,7 @@ The key components for the proposed solution includes:
 We implemented a new git remote helper\cite{git-remote-helper} for the proposed
 protocol extension.
 The remote helper provides a new remote repository URL scheme \emph{dirs://}.
-By replacing normal \emph{ssh://} scheme with that, the helper calls the
+By replacing normal \emph{ssh://} scheme with the new URL scheme, the helper calls the
 extended protocol automatically.
 The repository we used is a Git mirror of a perforce depot, i.e.\\
 \verb|mirrors/vmware/perforce-1666_bora_prod-2015.git| from
@@ -492,7 +492,7 @@ repository with usage, e.g.
 #/vmkdrivers
 \end{verbatim}
 
-For example, we only comment out directory \verb|/scons|.
+For this example, we only commented out the directory \verb|/scons|.
 After saving and exiting the editor, the program starts the transferring.
 \begin{verbatim}
 remote: = Extended version of git-pack-objects =
@@ -501,7 +501,7 @@ remote: Counting objects: 52510, done.
 ...
 \end{verbatim}
 
-We did another normal cloning for comparing.
+We did another normal clone for comparing.
 \begin{verbatim}
 $ git clone
 ssh://cguo@cguo-dev2/build/mts/tmp/\
@@ -512,9 +512,9 @@ remote: = Normal git clone =
 remote: Counting objects: 505844, done.
 ...
 \end{verbatim}
-The total objects transferred reduced from 505,844 to 52,510 (about 90\%
+The total objects transferred were reduced from 505,844 to 52,510 (about 90\%
 reduced!).
-The objects size transferred also reduced from 3.0GB to 24MB (about 99\%
+The object size transferred also were reduced from 3.0GB to 24MB (about 99\%
 reduced!).
 
 Finally, we created a new commit by adding a \verb|readme| file to \verb|scons/|
@@ -529,9 +529,9 @@ $ git commit -am \
  1 file changed, 1 insertion(+)
   create mode 100644 scons/readme
 \end{verbatim}
-From above output, we saw the new commit created is \verb|b72f3ee| instead of
+From the above output, we saw the new commit created is \verb|b72f3ee| instead of
 \verb|e1dfc03|.
-We ran below commands to verify the newly created commit is correct.
+We ran the below commands to verify the newly created commit is correct.
 \begin{verbatim}
 $ git ls-tree e1dfc03
 040000 tree 90d69f5...7c1    scons
@@ -553,11 +553,11 @@ E. Newren did some inspiring work in \cite{newren10-0}, \cite{newren10-1},
 which describes the idea of just clone referenced objects to client side.
 Additionally, this work also uses \emph{git replace} mechanism to deal with
 commit history\cite{git-replace}.
-However, due to modification to cloned commits and index file, some common Git
-important operations cannot work perfectly, such as fetch, push, rebase, etc.
+However, due to modification to cloned commits and index file, some important common
+Git operations fail to work properly, such as fetch, push, rebase, etc.
 
 N. Duy has also begun to work on sparse clone or subtree clone since 2008; and
-who submitted a series of patch in Git community.
+submitted a series of patch in Git community.
 \cite{duy08}, \cite{duy10-1}, \cite{duy10-2}, and \cite{duy10-3} describes a
 sparse clone method by adding an extra option to \verb|git clone| command, and
 rewriting/replacing the commits in clone time.
@@ -566,15 +566,15 @@ mechanism.
 The weak part of the work is multiple directories cannot be fully supported.
 
 \section{Limitations}
-Because of changing in Git object store, the client side repository cannot
-support any Git operations care about repository, e.g. the command of
+Due to changes in Git object store, the client side repository cannot
+support any Git operations care about repository, e.g. the commands of
 \verb|fsck|, \verb|repack|, and \verb|gc|.
 Additionally, since the mock tree object is empty, running the command of
 \verb|ls-tree| or \verb|cat-file| on that tree object produces empty output.
 
-Another limitation is, since the Git index is partial comparing with normal Git
-workspace, commands related to Git index (e.g. \verb|git ls-files|) may give
-different results.
+A further limitation is that commands related to Git index (e.g. \verb|git ls-files|) may give
+different results,
+as the Git index only partially matches the Git workspace.
 
 \begin{thebibliography}{10}
     \softraggedright
